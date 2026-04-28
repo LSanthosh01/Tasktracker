@@ -9,21 +9,23 @@ dotenv.config();
 const app = express();
 
 // CORS Configuration
+const normalizeOrigin = (value) => typeof value === 'string' ? value.replace(/\/$/, '') : value;
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   process.env.FRONTEND_URL,
   'https://tasktracker-pied.vercel.app'
-].filter(Boolean);
+].map(normalizeOrigin).filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    console.log('CORS request from origin:', origin);
+    const requestedOrigin = normalizeOrigin(origin);
+    console.log('CORS request from origin:', requestedOrigin);
     console.log('Allowed origins:', allowedOrigins);
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!requestedOrigin || allowedOrigins.includes(requestedOrigin)) {
       callback(null, true);
     } else {
-      console.log('CORS blocked for origin:', origin);
+      console.log('CORS blocked for origin:', requestedOrigin);
       callback(new Error('CORS not allowed'));
     }
   },
