@@ -17,12 +17,16 @@ const allowedOrigins = [
   'https://tasktracker-pied.vercel.app'
 ].map(normalizeOrigin).filter(Boolean);
 
+const isVercelAppOrigin = (origin) => {
+  return typeof origin === 'string' && origin.endsWith('.vercel.app');
+};
+
 app.use(cors({
   origin: (origin, callback) => {
     const requestedOrigin = normalizeOrigin(origin);
     console.log('CORS request from origin:', requestedOrigin);
     console.log('Allowed origins:', allowedOrigins);
-    if (!requestedOrigin || allowedOrigins.includes(requestedOrigin)) {
+    if (!requestedOrigin || allowedOrigins.includes(requestedOrigin) || isVercelAppOrigin(requestedOrigin)) {
       callback(null, true);
     } else {
       console.log('CORS blocked for origin:', requestedOrigin);
