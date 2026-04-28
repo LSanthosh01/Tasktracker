@@ -12,7 +12,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   process.env.FRONTEND_URL,
-  'https://tasktrack-frontend.vercel.app' // Update with your frontend URL
+  'https://tasktracker-pied.vercel.app' // Your frontend URL
 ];
 
 // Middleware
