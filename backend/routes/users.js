@@ -9,12 +9,24 @@ const { protect, authorize, generateToken } = require('../middleware/auth');
 // GET /api/users/stats - Get user statistics (all roles count)
 router.get('/stats/overview', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const stats = {
-      admin: await User.countDocuments({ role: 'admin' }),
-      manager: await User.countDocuments({ role: 'manager' }),
-      employee: await User.countDocuments({ role: 'employee' }),
-      total: await User.countDocuments({})
-    };
+    let stats;
+
+    if (req.user.role === 'admin') {
+      stats = {
+        admin: 0,
+        manager: await User.countDocuments({ role: 'manager', createdBy: req.user._id }),
+        employee: await User.countDocuments({ role: 'employee', createdBy: req.user._id }),
+        total: await User.countDocuments({ createdBy: req.user._id })
+      };
+    } else {
+      stats = {
+        admin: 0,
+        manager: 0,
+        employee: await User.countDocuments({ role: 'employee', createdBy: req.user._id }),
+        total: await User.countDocuments({ role: 'employee', createdBy: req.user._id })
+      };
+    }
+
     res.json({ success: true, stats });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -24,7 +36,14 @@ router.get('/stats/overview', protect, authorize('admin', 'manager'), async (req
 // GET /api/users/managers - Get all managers
 router.get('/managers', protect, async (req, res) => {
   try {
-    const managers = await User.find({ role: 'manager', isActive: true }).select('name email _id');
+    const filter = { role: 'manager', isActive: true };
+    if (req.user.role === 'admin') {
+      filter.createdBy = req.user._id;
+    } else {
+      filter.createdBy = req.user._id;
+    }
+
+    const managers = await User.find(filter).select('name email _id');
     res.json({ success: true, managers });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -34,8 +53,10 @@ router.get('/managers', protect, async (req, res) => {
 // GET /api/users - Get all users (admin/manager)
 router.get('/', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const filter = {};
-    if (req.user.role === 'manager') filter.role = 'employee';
+    const filter = { createdBy: req.user._id };
+    if (req.user.role === 'manager') {
+      filter.role = 'employee';
+    }
 
     const users = await User.find(filter).sort('-createdAt');
     res.json({ success: true, count: users.length, users });
