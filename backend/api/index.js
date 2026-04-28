@@ -44,7 +44,7 @@ app.use('/api/ratings', require('../routes/ratings'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'TaskTrack API is running' });
+  res.json({ status: 'OK', message: 'TaskTrack API is running - v2' });
 });
 
 // Error handler
