@@ -1,0 +1,74 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import toast from 'react-hot-toast';
+
+export default function Register() {
+  const [form, setForm] = useState({ name: '', email: '', password: '', adminSecret: '' });
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.password || !form.adminSecret) return toast.error('Please fill all fields');
+    setLoading(true);
+    try {
+      await api.post('/auth/register', form);
+      toast.success('Admin account created! Please login.');
+      navigate('/login');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-bg" />
+      <div className="auth-card">
+        <div className="auth-logo">
+          <div className="logo-icon" style={{ width: 42, height: 42, fontSize: 22, background: 'linear-gradient(135deg, #6c63ff, #ff6584)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⚡</div>
+          <span className="logo-text" style={{ fontSize: 24 }}>TaskFlow</span>
+        </div>
+        <h1 className="auth-title">Create Admin</h1>
+        <p className="auth-subtitle">Register the initial admin account for your organization</p>
+
+        <div className="alert alert-info">
+          <span>This registers an admin account. You'll need the admin secret key.</span>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Full Name</label>
+            <input type="text" className="form-input" placeholder="John Doe"
+              value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input type="email" className="form-input" placeholder="admin@company.com"
+              value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input type="password" className="form-input" placeholder="Min 6 characters"
+              value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Admin Secret</label>
+            <input type="password" className="form-input" placeholder="Admin registration key"
+              value={form.adminSecret} onChange={e => setForm(p => ({ ...p, adminSecret: e.target.value }))} />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} disabled={loading}>
+            {loading ? 'Creating...' : 'Create Admin Account'}
+          </button>
+        </form>
+
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--text-secondary)' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
