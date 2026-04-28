@@ -42,6 +42,7 @@ const AppRoutes = () => {
 };
 
 export default function App() {
+  // redeploy trigger - frontend fresh build
   return (
     <BrowserRouter>
       <AuthProvider>
