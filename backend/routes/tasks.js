@@ -13,6 +13,8 @@ router.get('/', protect, async (req, res) => {
       filter.assignedTo = req.user._id;
     } else if (req.user.role === 'manager') {
       filter.$or = [{ assignedBy: req.user._id }, { assignedTo: req.user._id }];
+    } else if (req.user.role === 'admin') {
+      filter.assignedBy = req.user._id;
     }
 
     const { status, priority, page = 1, limit = 20 } = req.query;
@@ -94,7 +96,7 @@ router.put('/:id', protect, async (req, res) => {
 
     const isAssignee = task.assignedTo.toString() === req.user._id.toString();
     const isAssigner = task.assignedBy.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === 'admin' && task.assignedBy.toString() === req.user._id.toString();
 
     if (!isAssignee && !isAssigner && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to update this task' });
@@ -130,8 +132,9 @@ router.delete('/:id', protect, authorize('admin', 'manager'), async (req, res) =
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
 
-    if (req.user.role === 'manager' && task.assignedBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Managers can only delete their own tasks' });
+    const isOwner = task.assignedBy.toString() === req.user._id.toString();
+    if (!isOwner) {
+      return res.status(403).json({ success: false, message: 'You can only delete tasks you created' });
     }
 
     await Task.findByIdAndDelete(req.params.id);
