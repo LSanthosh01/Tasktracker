@@ -12,30 +12,30 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('tasktrack_user');
+      const stored = sessionStorage.getItem('tasktrack_user');
       if (!stored || stored === 'undefined' || stored === 'null') {
         return null;
       }
       return JSON.parse(stored);
     } catch (e) {
-      console.error('Failed to parse user from localStorage:', e);
-      localStorage.removeItem('tasktrack_user');
-      localStorage.removeItem('tasktrack_token');
+      console.error('Failed to parse user from sessionStorage:', e);
+      sessionStorage.removeItem('tasktrack_user');
+      sessionStorage.removeItem('tasktrack_token');
       return null;
     }
   });
   const [loading, setLoading] = useState(true);
 
   const fetchMe = useCallback(async () => {
-    const token = localStorage.getItem('tasktrack_token');
+    const token = sessionStorage.getItem('tasktrack_token');
     if (!token) { setLoading(false); return; }
     try {
       const { data } = await api.get('/auth/me');
       setUser(data.user);
-      localStorage.setItem('tasktrack_user', JSON.stringify(data.user));
+      sessionStorage.setItem('tasktrack_user', JSON.stringify(data.user));
     } catch {
-      localStorage.removeItem('tasktrack_token');
-      localStorage.removeItem('tasktrack_user');
+      sessionStorage.removeItem('tasktrack_token');
+      sessionStorage.removeItem('tasktrack_user');
       setUser(null);
     } finally {
       setLoading(false);
@@ -46,21 +46,21 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('tasktrack_token', data.token);
-    localStorage.setItem('tasktrack_user', JSON.stringify(data.user));
+    sessionStorage.setItem('tasktrack_token', data.token);
+    sessionStorage.setItem('tasktrack_user', JSON.stringify(data.user));
     setUser(data.user);
     return data.user;
   };
 
   const logout = () => {
-    localStorage.removeItem('tasktrack_token');
-    localStorage.removeItem('tasktrack_user');
+    sessionStorage.removeItem('tasktrack_token');
+    sessionStorage.removeItem('tasktrack_user');
     setUser(null);
   };
 
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
-    localStorage.setItem('tasktrack_user', JSON.stringify(updatedUser));
+    sessionStorage.setItem('tasktrack_user', JSON.stringify(updatedUser));
   };
 
   return (
