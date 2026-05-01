@@ -39,7 +39,9 @@ const reportSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  reviewNotes: { type: String }
+  reviewNotes: { type: String },
+  selfRating: { type: Number, min: 1, max: 5 },
+  managerRatingStars: { type: Number, min: 1, max: 5 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Report', reportSchema);

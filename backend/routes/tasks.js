@@ -102,20 +102,53 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to update this task' });
     }
 
-    // Employees can only update status
+    // Employees can only update status and selfRating
     if (req.user.role === 'employee') {
       if (req.body.status) task.status = req.body.status;
+      if (req.body.selfRating !== undefined) task.selfRating = req.body.selfRating;
     } else {
-      const { title, description, deadline, status, priority, tags } = req.body;
+      const { title, description, deadline, status, priority, tags, selfRating } = req.body;
       if (title) task.title = title;
       if (description) task.description = description;
       if (deadline) task.deadline = deadline;
       if (status) task.status = status;
       if (priority) task.priority = priority;
       if (tags) task.tags = tags;
+      if (selfRating !== undefined) task.selfRating = selfRating;
     }
 
     await task.save();
+    const populated = await task.populate([
+      { path: 'assignedBy', select: 'name email role' },
+      { path: 'assignedTo', select: 'name email role' }
+    ]);
+    res.json({ success: true, task: populated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT /api/tasks/:id/review
+router.put('/:id/review', protect, authorize('admin', 'manager'), async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
+
+    // Ensure only the assigner or an admin can review the task
+    const isOwner = task.assignedBy.toString() === req.user._id.toString();
+    if (!isOwner && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only the assigner or admin can review this task' });
+    }
+
+    const { managerRatingStars, managerRatingPercentage, reviewNotes } = req.body;
+    
+    task.managerRatingStars = managerRatingStars;
+    task.managerRatingPercentage = managerRatingPercentage;
+    task.reviewNotes = reviewNotes;
+    task.status = 'completed'; // Approve task
+
+    await task.save();
+    
     const populated = await task.populate([
       { path: 'assignedBy', select: 'name email role' },
       { path: 'assignedTo', select: 'name email role' }

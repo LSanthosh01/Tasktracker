@@ -17,13 +17,7 @@ const allowedOrigins = [
 
 // Middleware
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS not allowed'));
-    }
-  },
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -36,7 +30,6 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/reports', require('./routes/reports'));
-app.use('/api/ratings', require('./routes/ratings'));
 
 // Health check
 app.get('/api/health', (req, res) => {

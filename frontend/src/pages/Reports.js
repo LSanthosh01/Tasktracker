@@ -4,6 +4,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { Plus, CheckCircle, Eye, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import * as XLSX from 'xlsx-js-style';
 
 const ReportModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState({
@@ -11,7 +12,8 @@ const ReportModal = ({ onClose, onSave }) => {
     progressDescription: '',
     hoursWorked: 8,
     tasksWorkedOn: [],
-    taggedTo: null
+    taggedTo: null,
+    selfRating: 5
   });
   const [tasks, setTasks] = useState([]);
   const [managers, setManagers] = useState([]);
@@ -70,6 +72,13 @@ const ReportModal = ({ onClose, onSave }) => {
                 <label className="form-label">Hours Worked</label>
                 <input type="number" className="form-input" value={form.hoursWorked} min={0} max={24}
                   onChange={e => setForm(p => ({ ...p, hoursWorked: Number(e.target.value) }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Self Rating (Stars)</label>
+                <select className="form-select" value={form.selfRating}
+                  onChange={e => setForm(p => ({ ...p, selfRating: Number(e.target.value) }))}>
+                  {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                </select>
               </div>
             </div>
             {tasks.length > 0 && (
@@ -133,7 +142,7 @@ const ReportModal = ({ onClose, onSave }) => {
 
 const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
   const canReview = currentUser.role !== 'employee';
-  const [reviewForm, setReviewForm] = useState({ status: 'reviewed', reviewNotes: '' });
+  const [reviewForm, setReviewForm] = useState({ status: 'reviewed', reviewNotes: '', managerRatingStars: 5 });
 
   const handleReview = async () => {
     try {
@@ -178,6 +187,18 @@ const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
             <div>
               <span className={`badge badge-${report.status}`}>{report.status}</span>
             </div>
+            {report.selfRating && (
+              <div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>Self Rating</p>
+                <p style={{ fontWeight: 600 }}>★ {report.selfRating}</p>
+              </div>
+            )}
+            {report.managerRatingStars && (
+              <div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>Manager Rating</p>
+                <p style={{ fontWeight: 600 }}>★ {report.managerRatingStars}</p>
+              </div>
+            )}
           </div>
 
           {report.tasksWorkedOn?.length > 0 && (
@@ -208,12 +229,22 @@ const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
           {canReview && report.status === 'submitted' && (
             <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: 16 }}>
               <p style={{ fontWeight: 600, marginBottom: 12, fontSize: 14 }}>Review this report</p>
-              <div className="form-group">
-                <select className="form-select" value={reviewForm.status}
-                  onChange={e => setReviewForm(p => ({ ...p, status: e.target.value }))}>
-                  <option value="reviewed">Mark as Reviewed</option>
-                  <option value="approved">Mark as Approved</option>
-                </select>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">Status</label>
+                  <select className="form-select" value={reviewForm.status}
+                    onChange={e => setReviewForm(p => ({ ...p, status: e.target.value }))}>
+                    <option value="reviewed">Mark as Reviewed</option>
+                    <option value="approved">Mark as Approved</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Manager Rating (Stars)</label>
+                  <select className="form-select" value={reviewForm.managerRatingStars}
+                    onChange={e => setReviewForm(p => ({ ...p, managerRatingStars: Number(e.target.value) }))}>
+                    {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                  </select>
+                </div>
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <textarea className="form-textarea" style={{ minHeight: 80 }} placeholder="Add review notes (optional)..."
@@ -277,9 +308,47 @@ export default function Reports() {
           <h1 className="page-title">Work Reports</h1>
           <p className="page-subtitle">{reports.length} report{reports.length !== 1 ? 's' : ''} total</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} /> Submit Report
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          {user.role !== 'employee' && (
+            <button className="btn btn-outline" onClick={() => {
+              const data = reports.map(r => ({
+                SubmittedBy: r.submittedBy?.name,
+                Role: r.submittedBy?.role,
+                Date: format(new Date(r.date), 'yyyy-MM-dd'),
+                Hours: r.hoursWorked,
+                SelfRating: r.selfRating,
+                Status: r.status,
+                Tasks: r.tasksWorkedOn.map(t => t.taskTitle).join(', '),
+                Description: r.progressDescription,
+                ReviewedBy: r.reviewedBy?.name || '',
+                ReviewNotes: r.reviewNotes || '',
+                ManagerStars: r.managerRatingStars || ''
+              }));
+              const ws = XLSX.utils.json_to_sheet(data);
+
+              const range = XLSX.utils.decode_range(ws['!ref']);
+              for (let C = range.s.c; C <= range.e.c; ++C) {
+                const address = XLSX.utils.encode_cell({ r: 0, c: C });
+                if (!ws[address]) continue;
+                ws[address].s = {
+                  font: { bold: true },
+                  alignment: { horizontal: 'left' }
+                };
+              }
+              // Set column widths
+              ws['!cols'] = Object.keys(data[0]).map(() => ({ wch: 20 }));
+
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, "Reports");
+              XLSX.writeFile(wb, "Reports_Export.xlsx");
+            }}>
+              Export to Excel
+            </button>
+          )}
+          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} /> Submit Report
+          </button>
+        </div>
       </div>
 
       <div className="filters">
@@ -313,7 +382,7 @@ export default function Reports() {
                   <th>Progress Summary</th>
                   <th>Status</th>
                   <th>Reviewed By</th>
-                  <th>Actions</th>
+                  <th>{filter === 'approved' ? 'Ratings' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -340,16 +409,22 @@ export default function Reports() {
                     <td><span className={`badge badge-${report.status}`}>{report.status}</span></td>
                     <td style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{report.reviewedBy?.name || '—'}</td>
                     <td>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="btn btn-secondary btn-icon btn-sm" onClick={() => setViewReport(report)} title="View">
-                          <Eye size={14} />
-                        </button>
-                        {(user.role === 'admin' || report.submittedBy?._id === user._id) && (
-                          <button className="btn btn-danger btn-icon btn-sm" onClick={() => handleDelete(report._id)}>
-                            <Trash2 size={14} />
+                      {report.status !== 'approved' ? (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button className="btn btn-secondary btn-icon btn-sm" onClick={() => setViewReport(report)} title="View">
+                            <Eye size={14} />
                           </button>
-                        )}
-                      </div>
+                          {(user.role === 'admin' || report.submittedBy?._id === user._id) && (
+                            <button className="btn btn-danger btn-icon btn-sm" onClick={() => handleDelete(report._id)}>
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {report.managerRatingStars ? `★ ${report.managerRatingStars}/5` : <span style={{ color: 'var(--text-muted)' }}>No Rating</span>}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

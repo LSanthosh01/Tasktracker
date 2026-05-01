@@ -10,7 +10,6 @@ const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
   { path: '/tasks', label: 'Tasks', icon: CheckSquare, roles: ['admin', 'manager', 'employee'] },
   { path: '/reports', label: 'Work Reports', icon: FileText, roles: ['admin', 'manager', 'employee'] },
-  { path: '/ratings', label: 'Ratings', icon: Star, roles: ['admin', 'manager', 'employee'] },
   { path: '/users', label: 'User Management', icon: Users, roles: ['admin', 'manager'] },
 ];
 

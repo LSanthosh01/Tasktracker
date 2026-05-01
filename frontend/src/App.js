@@ -8,7 +8,6 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import Reports from './pages/Reports';
-import Ratings from './pages/Ratings';
 import Users from './pages/Users';
 import Profile from './pages/Profile';
 
@@ -31,7 +30,6 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/reports" element={<Reports />} />
-        <Route path="/ratings" element={<Ratings />} />
         <Route path="/users" element={
           <ProtectedRoute roles={['admin', 'manager']}><Users /></ProtectedRoute>
         } />

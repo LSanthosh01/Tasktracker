@@ -28,7 +28,7 @@ const taskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'in-progress', 'completed'],
+    enum: ['pending', 'in-progress', 'under-review', 'completed'],
     default: 'pending'
   },
   priority: {
@@ -37,7 +37,11 @@ const taskSchema = new mongoose.Schema({
     default: 'medium'
   },
   tags: [{ type: String }],
-  completedAt: { type: Date }
+  completedAt: { type: Date },
+  selfRating: { type: Number, min: 1, max: 5 },
+  managerRatingStars: { type: Number, min: 1, max: 5 },
+  managerRatingPercentage: { type: Number, min: 0, max: 100 },
+  reviewNotes: { type: String }
 }, { timestamps: true });
 
 // Auto-set completedAt

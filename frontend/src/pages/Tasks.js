@@ -4,8 +4,9 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { Plus, Search, Edit, Trash2, Calendar, User } from 'lucide-react';
 import { format } from 'date-fns';
+import * as XLSX from 'xlsx-js-style';
 
-const STATUS_OPTIONS = ['pending', 'in-progress', 'completed'];
+const STATUS_OPTIONS = ['pending', 'in-progress', 'under-review', 'completed'];
 const PRIORITY_OPTIONS = ['low', 'medium', 'high'];
 
 const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
@@ -16,7 +17,8 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
     assignedTo: task?.assignedTo?._id || '',
     deadline: task?.deadline ? format(new Date(task.deadline), 'yyyy-MM-dd') : '',
     priority: task?.priority || 'medium',
-    status: task?.status || 'pending'
+    status: task?.status || 'pending',
+    selfRating: task?.selfRating || 5
   });
   const [loading, setLoading] = useState(false);
 
@@ -90,13 +92,24 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
               </div>
             </div>
             {isEdit && (
-              <div className="form-group">
-                <label className="form-label">Status</label>
-                <select className="form-select" value={form.status}
-                  onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>
-                  {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
+              <>
+                <div className="form-group">
+                  <label className="form-label">Status</label>
+                  <select className="form-select" value={form.status}
+                    onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>
+                    {(isEmployee ? STATUS_OPTIONS.filter(s => s !== 'completed') : STATUS_OPTIONS).map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                {form.status === 'under-review' && isEmployee && (
+                  <div className="form-group">
+                    <label className="form-label">Self Rating (Stars)</label>
+                    <select className="form-select" value={form.selfRating}
+                      onChange={e => setForm(p => ({ ...p, selfRating: Number(e.target.value) }))}>
+                      {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                    </select>
+                  </div>
+                )}
+              </>
             )}
           </div>
           <div className="modal-footer">
@@ -111,12 +124,73 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
   );
 };
 
+const ReviewModal = ({ task, onClose, onSave }) => {
+  const [form, setForm] = useState({ managerRatingStars: 5, managerRatingPercentage: 100, reviewNotes: '' });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await api.put(`/tasks/${task._id}/review`, form);
+      toast.success('Task approved and completed');
+      onSave();
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to review task');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <h2 className="modal-title">Review & Approve Task</h2>
+          <button onClick={onClose} className="btn btn-secondary btn-icon btn-sm">✕</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            <div className="grid-2">
+              <div className="form-group">
+                <label className="form-label">Rating (Stars)</label>
+                <select className="form-select" value={form.managerRatingStars}
+                  onChange={e => setForm(p => ({ ...p, managerRatingStars: Number(e.target.value) }))}>
+                  {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Rating (%)</label>
+                <input type="number" className="form-input" min="0" max="100" value={form.managerRatingPercentage}
+                  onChange={e => setForm(p => ({ ...p, managerRatingPercentage: Number(e.target.value) }))} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Review Notes</label>
+              <textarea className="form-textarea" value={form.reviewNotes}
+                onChange={e => setForm(p => ({ ...p, reviewNotes: e.target.value }))} placeholder="Add feedback..." />
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-success" disabled={loading}>
+              {loading ? 'Processing...' : 'Approve Task'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 export default function Tasks() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null); // null | 'create' | task object
+  const [reviewModal, setReviewModal] = useState(null); // task object
   const [filters, setFilters] = useState({ status: '', priority: '', search: '' });
 
   const canCreate = user.role === 'admin' || user.role === 'manager';
@@ -175,11 +249,48 @@ export default function Tasks() {
           <h1 className="page-title">Tasks</h1>
           <p className="page-subtitle">{tasks.length} task{tasks.length !== 1 ? 's' : ''} total</p>
         </div>
-        {canCreate && (
-          <button className="btn btn-primary" onClick={() => setModal('create')}>
-            <Plus size={16} /> New Task
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: 12 }}>
+          {canCreate && (
+            <button className="btn btn-outline" onClick={() => {
+              const data = tasks.map(t => ({
+                Title: t.title,
+                Description: t.description,
+                AssignedTo: t.assignedTo?.name,
+                AssignedBy: t.assignedBy?.name,
+                Deadline: format(new Date(t.deadline), 'yyyy-MM-dd'),
+                Status: t.status,
+                Priority: t.priority,
+                SelfRating: t.selfRating,
+                ManagerStars: t.managerRatingStars,
+                ManagerPercentage: t.managerRatingPercentage
+              }));
+              const ws = XLSX.utils.json_to_sheet(data);
+              
+              const range = XLSX.utils.decode_range(ws['!ref']);
+              for (let C = range.s.c; C <= range.e.c; ++C) {
+                const address = XLSX.utils.encode_cell({ r: 0, c: C });
+                if (!ws[address]) continue;
+                ws[address].s = {
+                  font: { bold: true },
+                  alignment: { horizontal: 'left' }
+                };
+              }
+              // Set column widths
+              ws['!cols'] = Object.keys(data[0]).map(() => ({ wch: 20 }));
+
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, "Tasks");
+              XLSX.writeFile(wb, "Tasks_Export.xlsx");
+            }}>
+              Export to Excel
+            </button>
+          )}
+          {canCreate && (
+            <button className="btn btn-primary" onClick={() => setModal('create')}>
+              <Plus size={16} /> New Task
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="filters">
@@ -222,7 +333,7 @@ export default function Tasks() {
                   <th>Deadline</th>
                   <th>Priority</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th>{filters.status === 'completed' ? 'Ratings' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -258,15 +369,27 @@ export default function Tasks() {
                     <td><span className={`badge badge-${task.status}`}>{task.status}</span></td>
                     <td>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="btn btn-secondary btn-icon btn-sm" onClick={() => setModal(task)} title="Edit">
-                          <Edit size={14} />
-                        </button>
+                        {(user.role === 'admin' || (user.role === 'manager' && task.assignedBy?._id === user._id)) && task.status === 'under-review' && (
+                          <button className="btn btn-success btn-sm" onClick={() => setReviewModal(task)}>
+                            Review
+                          </button>
+                        )}
+                        {!(user.role === 'employee' && task.status === 'completed') && (
+                          <button className="btn btn-secondary btn-icon btn-sm" onClick={() => setModal(task)} title="Edit">
+                            <Edit size={14} />
+                          </button>
+                        )}
                         {(user.role === 'admin' || task.assignedBy?._id === user._id) && (
                           <button className="btn btn-danger btn-icon btn-sm" onClick={() => handleDelete(task._id)} title="Delete">
                             <Trash2 size={14} />
                           </button>
                         )}
                       </div>
+                      {task.status === 'completed' && task.managerRatingStars && (
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                          ★ {task.managerRatingStars}/5 • {task.managerRatingPercentage}%
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -283,6 +406,13 @@ export default function Tasks() {
           onClose={() => setModal(null)}
           onSave={fetchData}
           currentUser={user}
+        />
+      )}
+      {reviewModal && (
+        <ReviewModal
+          task={reviewModal}
+          onClose={() => setReviewModal(null)}
+          onSave={fetchData}
         />
       )}
     </div>

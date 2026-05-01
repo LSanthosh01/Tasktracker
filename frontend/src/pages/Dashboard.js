@@ -24,22 +24,19 @@ export default function Dashboard() {
         const requests = [api.get('/tasks?limit=100')];
         if (!isEmployee) requests.push(api.get('/users'));
         requests.push(api.get('/reports?limit=100'));
-        if (!isAdmin) requests.push(api.get('/ratings'));
 
         const [tasksRes, ...rest] = await Promise.allSettled(requests);
         const tasks = tasksRes.status === 'fulfilled' ? tasksRes.value.data.tasks : [];
-        let usersData = [], reportsData = [], ratingsData = [];
+        let usersData = [], reportsData = [];
 
         if (!isEmployee && rest[0]?.status === 'fulfilled') {
           usersData = rest[0].value.data.users || [];
           reportsData = rest[1]?.value?.data?.reports || [];
-          if (!isAdmin) ratingsData = rest[2]?.value?.data?.ratings || [];
         } else {
           reportsData = rest[0]?.value?.data?.reports || [];
-          if (!isAdmin) ratingsData = rest[1]?.value?.data?.ratings || [];
         }
 
-        setStats({ tasks, users: usersData, reports: reportsData, ratings: ratingsData });
+        setStats({ tasks, users: usersData, reports: reportsData });
       } catch (err) {
         console.error(err);
       } finally {
@@ -55,13 +52,22 @@ export default function Dashboard() {
     </div>
   );
 
-  const { tasks, users, reports, ratings } = stats;
+  const { tasks, users, reports } = stats;
   const pendingTasks = tasks.filter(t => t.status === 'pending').length;
   const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
   const completedTasks = tasks.filter(t => t.status === 'completed').length;
-  const myRatings = ratings.filter(r => r.ratedUser?._id === user._id);
-  const avgRating = myRatings.length
-    ? (myRatings.reduce((s, r) => s + r.score, 0) / myRatings.length).toFixed(1)
+  
+  const selfRatings = [
+    ...tasks.filter(t => t.selfRating).map(t => t.selfRating),
+    ...reports.filter(r => r.selfRating).map(r => r.selfRating)
+  ];
+  const avgSelfRating = selfRatings.length
+    ? (selfRatings.reduce((s, r) => s + r, 0) / selfRatings.length).toFixed(1)
+    : 'N/A';
+
+  const managerRatings = tasks.filter(t => t.managerRatingStars).map(t => t.managerRatingStars);
+  const avgManagerRating = managerRatings.length
+    ? (managerRatings.reduce((s, r) => s + r, 0) / managerRatings.length).toFixed(1)
     : 'N/A';
 
   const recentTasks = [...tasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
@@ -84,7 +90,7 @@ export default function Dashboard() {
         <StatCard label="In Progress" value={inProgressTasks} icon={TrendingUp} color="#74c0fc" />
         <StatCard label="Completed" value={completedTasks} icon={CheckCircle} color="#38d9a9" />
         {!isEmployee && <StatCard label="Team Members" value={users.length} icon={Users} color="#ff6584" />}
-        {!isAdmin && <StatCard label="My Rating" value={avgRating} icon={Star} color="#fcc419" sub={`${myRatings.length} review${myRatings.length !== 1 ? 's' : ''}`} />}
+        {!isAdmin && <StatCard label="Ratings" value={avgManagerRating} icon={Star} color="#fcc419" sub={`${managerRatings.length} rating${managerRatings.length !== 1 ? 's' : ''}`} />}
         <StatCard label="Reports" value={reports.length} icon={FileText} color="#43e97b" />
         {overdueTasks > 0 && <StatCard label="Overdue" value={overdueTasks} icon={AlertCircle} color="#ff6b6b" sub="Need attention" />}
       </div>

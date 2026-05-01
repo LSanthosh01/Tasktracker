@@ -61,13 +61,13 @@ router.post('/', protect, [
   if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
 
   try {
-    const { date, progressDescription, hoursWorked, tasksWorkedOn, taggedTo } = req.body;
+    const { date, progressDescription, hoursWorked, tasksWorkedOn, taggedTo, selfRating } = req.body;
 
     const report = await Report.create({
       submittedBy: req.user._id,
       date, progressDescription, hoursWorked,
       tasksWorkedOn: tasksWorkedOn || [],
-      taggedTo
+      taggedTo, selfRating
     });
 
     const populated = await report.populate('submittedBy', 'name email role');
@@ -85,6 +85,9 @@ router.put('/:id/review', protect, authorize('admin', 'manager'), async (req, re
 
     report.status = req.body.status || 'reviewed';
     report.reviewNotes = req.body.reviewNotes;
+    if (req.body.managerRatingStars !== undefined) {
+      report.managerRatingStars = req.body.managerRatingStars;
+    }
     report.reviewedBy = req.user._id;
 
     await report.save();

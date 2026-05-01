@@ -2,30 +2,34 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
-const Rating = require('../models/Rating');
 const Report = require('../models/Report');
 const { protect, authorize, generateToken } = require('../middleware/auth');
+
+const getTenantFilter = async (user) => {
+  const adminId = user.role === 'admin' ? user._id : user.createdBy;
+  const managers = await User.find({ createdBy: adminId, role: 'manager' }).select('_id');
+  const managerIds = managers.map(m => m._id);
+
+  return {
+    $or: [
+      { _id: adminId },
+      { createdBy: adminId },
+      { createdBy: { $in: managerIds } }
+    ]
+  };
+};
 
 // GET /api/users/stats - Get user statistics (all roles count)
 router.get('/stats/overview', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    let stats;
-
-    if (req.user.role === 'admin') {
-      stats = {
-        admin: 0,
-        manager: await User.countDocuments({ role: 'manager', createdBy: req.user._id }),
-        employee: await User.countDocuments({ role: 'employee', createdBy: req.user._id }),
-        total: await User.countDocuments({ createdBy: req.user._id })
-      };
-    } else {
-      stats = {
-        admin: 0,
-        manager: 0,
-        employee: await User.countDocuments({ role: 'employee', createdBy: req.user._id }),
-        total: await User.countDocuments({ role: 'employee', createdBy: req.user._id })
-      };
-    }
+    const filter = await getTenantFilter(req.user);
+    
+    const stats = {
+      admin: await User.countDocuments({ ...filter, role: 'admin' }),
+      manager: await User.countDocuments({ ...filter, role: 'manager' }),
+      employee: await User.countDocuments({ ...filter, role: 'employee' }),
+      total: await User.countDocuments(filter)
+    };
 
     res.json({ success: true, stats });
   } catch (err) {
@@ -36,12 +40,8 @@ router.get('/stats/overview', protect, authorize('admin', 'manager'), async (req
 // GET /api/users/managers - Get all managers
 router.get('/managers', protect, async (req, res) => {
   try {
-    const filter = { role: 'manager', isActive: true };
-    if (req.user.role === 'admin') {
-      filter.createdBy = req.user._id;
-    } else {
-      filter.createdBy = req.user._id;
-    }
+    const baseFilter = await getTenantFilter(req.user);
+    const filter = { ...baseFilter, role: 'manager', isActive: true };
 
     const managers = await User.find(filter).select('name email _id');
     res.json({ success: true, managers });
@@ -53,11 +53,7 @@ router.get('/managers', protect, async (req, res) => {
 // GET /api/users - Get all users (admin/manager)
 router.get('/', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const filter = { createdBy: req.user._id };
-    if (req.user.role === 'manager') {
-      filter.role = 'employee';
-    }
-
+    const filter = await getTenantFilter(req.user);
     const users = await User.find(filter).sort('-createdAt');
     res.json({ success: true, count: users.length, users });
   } catch (err) {
@@ -142,8 +138,7 @@ router.delete('/:id', protect, authorize('admin', 'manager'), async (req, res) =
       return res.status(403).json({ success: false, message: 'Managers can only delete employees' });
     }
 
-    // Delete related ratings and reports
-    await Rating.deleteMany({ $or: [{ ratedBy: req.params.id }, { ratedUser: req.params.id }] });
+    // Delete related reports
     await Report.deleteMany({ submittedBy: req.params.id });
 
     await User.findByIdAndDelete(req.params.id);
