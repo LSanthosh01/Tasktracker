@@ -109,12 +109,17 @@ export default function Users() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, statsRes] = await Promise.all([
-        api.get('/users'),
-        api.get('/users/stats/overview')
-      ]);
-      setUsers(usersRes.data.users);
-      setStats(statsRes.data.stats);
+      const usersRes = await api.get('/users');
+      const fetchedUsers = usersRes.data.users;
+      setUsers(fetchedUsers);
+      
+      // Calculate stats locally from the fetched list so it exactly matches what's visible
+      setStats({
+        admin: fetchedUsers.filter(u => u.role === 'admin').length,
+        manager: fetchedUsers.filter(u => u.role === 'manager').length,
+        employee: fetchedUsers.filter(u => u.role === 'employee').length,
+        total: fetchedUsers.length
+      });
     } catch (err) {
       toast.error('Failed to load users');
     } finally {

@@ -25,9 +25,9 @@ router.get('/stats/overview', protect, authorize('admin', 'manager'), async (req
     const filter = await getTenantFilter(req.user);
     
     const stats = {
-      admin: await User.countDocuments({ ...filter, role: 'admin' }),
-      manager: await User.countDocuments({ ...filter, role: 'manager' }),
-      employee: await User.countDocuments({ ...filter, role: 'employee' }),
+      admin: await User.countDocuments({ $and: [filter, { role: 'admin' }] }),
+      manager: await User.countDocuments({ $and: [filter, { role: 'manager' }] }),
+      employee: await User.countDocuments({ $and: [filter, { role: 'employee' }] }),
       total: await User.countDocuments(filter)
     };
 
