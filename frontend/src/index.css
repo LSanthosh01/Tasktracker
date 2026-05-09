@@ -3,23 +3,23 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f1ed;
-  --bg-card: #faf8f5;
-  --bg-card-hover: #f0ebe5;
-  --border: #e8ddd2;
-  --border-light: #f0e6d8;
-  --accent: #c9a98a;
-  --accent-2: #d4a574;
-  --accent-3: #a89668;
-  --accent-4: #e8b87a;
-  --text-primary: #2c2416;
-  --text-secondary: #6b5f54;
-  --text-muted: #9b8976;
-  --success: #6ba55f;
-  --warning: #d9a800;
-  --danger: #c85555;
-  --info: #7ba8d6;
+  --bg-primary: rgba(255, 255, 255, 0.4);
+  --bg-secondary: rgba(255, 255, 255, 0.6);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.04);
+  --accent: #4f46e5;
+  --accent-2: #6366f1;
+  --accent-3: #818cf8;
+  --accent-4: #a5b4fc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
   --sidebar-w: 260px;
   --header-h: 64px;
   --radius: 12px;
@@ -35,7 +35,11 @@ html { font-size: 16px; height: 100%; }
 
 body {
   font-family: var(--font-body);
-  background: var(--bg-primary);
+  background-color: #f8fafc;
+  background-image: url('/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -106,6 +110,8 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
   width: var(--sidebar-w);
   height: 100vh;
   background: var(--bg-secondary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
   z-index: 100;
@@ -213,8 +219,9 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
   position: fixed; top: 0;
   left: var(--sidebar-w); right: 0;
   height: var(--header-h);
-  background: rgba(10, 10, 20, 0.9);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 32px;
@@ -227,6 +234,8 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
 /* Cards */
 .card {
   background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
@@ -252,6 +261,8 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
 
 .stat-card {
   background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
@@ -550,13 +561,24 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
 .auth-bg {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(108, 99, 255, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(255, 101, 132, 0.06) 0%, transparent 50%);
+  background-image: url('/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+.auth-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .auth-card {
   background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) * 1.5);
   padding: 40px;

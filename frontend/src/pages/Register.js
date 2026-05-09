@@ -69,6 +69,10 @@ export default function Register() {
           <Link to="/login" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
         </p>
       </div>
+      <div style={{ position: 'absolute', bottom: 20, textAlign: 'center', width: '100%', color: 'var(--text-primary)', fontSize: 14, fontWeight: 500, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+        Developed by Naveen
+        <img src="/photo.jpeg" alt="Naveen" style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+      </div>
     </div>
   );
 }

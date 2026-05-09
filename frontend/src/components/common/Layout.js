@@ -96,6 +96,24 @@ export default function Layout() {
         <main className="page-content">
           <Outlet />
         </main>
+        <footer style={{
+          textAlign: 'center',
+          padding: '20px',
+          color: 'var(--text-secondary)',
+          fontSize: '14px',
+          fontWeight: 500,
+          background: 'rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderTop: '1px solid var(--border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px'
+        }}>
+          Developed by Naveen
+          <img src="/photo.jpeg" alt="Naveen" style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+        </footer>
       </div>
     </div>
   );
