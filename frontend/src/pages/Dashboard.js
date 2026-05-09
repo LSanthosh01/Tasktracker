@@ -79,8 +79,12 @@ export default function Dashboard() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Good {new Date().getHours() < 12 ? 'morning' : 'afternoon'}, {user.name.split(' ')[0]} 👋</h1>
-          <p className="page-subtitle">{format(new Date(), 'EEEE, MMMM d yyyy')} · Here's what's happening today</p>
+          <h1 className="page-title" style={{ color: '#ffffff', textShadow: '1px 2px 8px rgba(0,0,0,0.7)' }}>
+            Good {new Date().getHours() < 12 ? 'morning' : 'afternoon'}, {user.name.split(' ')[0]} 👋
+          </h1>
+          <p className="page-subtitle" style={{ color: '#f8fafc', textShadow: '1px 1px 4px rgba(0,0,0,0.8)', fontWeight: 500, marginTop: '4px' }}>
+            {format(new Date(), 'EEEE, MMMM d yyyy')} · Here's what's happening today
+          </p>
         </div>
       </div>
 
