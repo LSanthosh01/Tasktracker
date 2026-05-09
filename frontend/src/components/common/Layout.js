@@ -5,6 +5,7 @@ import {
   LayoutDashboard, CheckSquare, FileText, Star, Users,
   User, LogOut, Zap, Shield, Briefcase, UserCheck
 } from 'lucide-react';
+import photo from '../../assets/photo.jpeg';
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
@@ -112,7 +113,7 @@ export default function Layout() {
           gap: '10px'
         }}>
           Developed by Naveen
-          <img src="/photo.jpeg" alt="Naveen" style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+          <img src={photo} alt="Naveen" style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
         </footer>
       </div>
     </div>
