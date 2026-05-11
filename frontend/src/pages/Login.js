@@ -27,58 +27,72 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      <div className="auth-bg" />
-      <div className="auth-card">
-        <div className="auth-logo">
-          <div className="logo-icon" style={{ width: 42, height: 42, fontSize: 22, background: 'linear-gradient(135deg, #6c63ff, #ff6584)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⚡</div>
-          <span className="logo-text" style={{ fontSize: 24 }}>TaskTracker</span>
+      {/* Left — background image with brand overlay */}
+      <div className="auth-bg">
+        <div className="auth-bg-brand">
+          <h2>Manage tasks.<br />Deliver results.</h2>
+          <p>A smarter way to track work, collaborate with your team, and hit every deadline — all in one place.</p>
         </div>
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-subtitle">Sign in to your account to continue</p>
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Email address</label>
-            <input
-              type="email" className="form-input"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-              autoComplete="email"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPw ? 'text' : 'password'}
-                className="form-input"
-                placeholder="Your password"
-                value={form.password}
-                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                style={{ paddingRight: 40 }}
-              />
-              <button type="button" onClick={() => setShowPw(p => !p)}
-                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }} disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--text-secondary)' }}>
-          Need admin access?{' '}
-          <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
-            Register here
-          </Link>
-        </p>
       </div>
-      <div style={{ position: 'absolute', bottom: 20, textAlign: 'center', width: '100%', color: 'var(--text-primary)', fontSize: 14, fontWeight: 500, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-        Developed by Naveen
-        <img src={photo} alt="Naveen" style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+
+      {/* Right — login panel */}
+      <div className="auth-panel">
+        <div className="auth-card">
+          <div className="auth-logo">
+            <div className="logo-icon" style={{ width: 42, height: 42, fontSize: 22, background: 'linear-gradient(135deg, #6c63ff, #ff6584)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⚡</div>
+            <span className="logo-text" style={{ fontSize: 24 }}>TaskTracker</span>
+          </div>
+          <h1 className="auth-title">Welcome back</h1>
+          <p className="auth-subtitle">Sign in to your account to continue</p>
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">Email address</label>
+              <input
+                type="email" className="form-input"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                autoComplete="email"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  className="form-input"
+                  placeholder="Your password"
+                  value={form.password}
+                  onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                  style={{ paddingRight: 40 }}
+                />
+                <button type="button" onClick={() => setShowPw(p => !p)}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }} disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--text-secondary)' }}>
+            Need admin access?{' '}
+            <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
+              Register here
+            </Link>
+          </p>
+
+          <div style={{ marginTop: 40, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={photo} alt="Naveen Lawrence" style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+              <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Naveen Lawrence</span>
+            </div>
+            <span>Technical Trainer &mdash; Magic Bus India Organisation</span>
+          </div>
+        </div>
       </div>
     </div>
   );
