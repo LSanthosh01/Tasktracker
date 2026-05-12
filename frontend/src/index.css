@@ -3,12 +3,12 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-primary: rgba(255, 255, 255, 0.4);
-  --bg-secondary: rgba(255, 255, 255, 0.6);
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-card-hover: rgba(255, 255, 255, 0.95);
-  --border: rgba(0, 0, 0, 0.08);
-  --border-light: rgba(0, 0, 0, 0.04);
+  --bg-primary: #f8faff;
+  --bg-secondary: #f1f5ff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8faff;
+  --border: rgba(79, 70, 229, 0.1);
+  --border-light: rgba(79, 70, 229, 0.06);
   --accent: #4f46e5;
   --accent-2: #6366f1;
   --accent-3: #818cf8;
@@ -24,8 +24,8 @@
   --header-h: 64px;
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 48px rgba(0,0,0,0.12);
+  --shadow: 0 4px 24px rgba(79,70,229,0.08);
+  --shadow-lg: 0 8px 48px rgba(79,70,229,0.12);
   --font-display: 'Poppins', sans-serif;
   --font-body: 'Inter', sans-serif;
   --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
@@ -35,11 +35,8 @@ html { font-size: 16px; height: 100%; }
 
 body {
   font-family: var(--font-body);
-  background-color: #f8fafc;
-  background-image: url('./assets/background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  background-color: #ffffff;
+  background-image: none;
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -56,9 +53,9 @@ body {
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-secondary); }
-::-webkit-scrollbar-thumb { background: #d4a574; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #c9a98a; }
+::-webkit-scrollbar-track { background: #f1f5ff; }
+::-webkit-scrollbar-thumb { background: #a5b4fc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #818cf8; }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; line-height: 1.2; }
@@ -109,13 +106,12 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
   position: fixed; top: 0; left: 0;
   width: var(--sidebar-w);
   height: 100vh;
-  background: var(--bg-secondary);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #ffffff;
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
   z-index: 100;
   overflow-y: auto;
+  box-shadow: 2px 0 16px rgba(79,70,229,0.07);
 }
 
 .sidebar-logo {
@@ -219,13 +215,12 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
   position: fixed; top: 0;
   left: var(--sidebar-w); right: 0;
   height: var(--header-h);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #ffffff;
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 32px;
   z-index: 50;
+  box-shadow: 0 2px 12px rgba(79,70,229,0.07);
 }
 
 .header-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
@@ -233,13 +228,12 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
 
 /* Cards */
 .card {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #ffffff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
   transition: var(--transition);
+  box-shadow: 0 2px 12px rgba(79,70,229,0.06);
 }
 
 .card:hover { border-color: var(--border-light); }
@@ -260,15 +254,14 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
 }
 
 .stat-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #ffffff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
   position: relative;
   overflow: hidden;
   transition: var(--transition);
+  box-shadow: 0 2px 12px rgba(79,70,229,0.06);
 }
 
 .stat-card::before {
@@ -655,7 +648,7 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
 .list-item {
   display: flex; align-items: center; gap: 12px;
   padding: 12px;
-  background: var(--bg-secondary);
+  background: #f8faff;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   transition: var(--transition);

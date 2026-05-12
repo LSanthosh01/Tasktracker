@@ -98,24 +98,22 @@ export default function Layout() {
           <Outlet />
         </main>
         <footer style={{
-          textAlign: 'center',
-          padding: '20px',
+          textAlign: 'right',
+          padding: '16px 32px',
           color: 'var(--text-secondary)',
-          background: 'rgba(255, 255, 255, 0.5)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          background: '#ffffff',
           borderTop: '1px solid var(--border)',
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px'
+          justifyContent: 'flex-end',
+          gap: '12px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={photo} alt="Naveen Lawrence" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }} />
-            <span style={{ fontWeight: 600, fontSize: '14px' }}>Naveen Lawrence</span>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>Naveen Lawrence</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Technical Trainer &mdash; Magic Bus India Organisation</div>
           </div>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Technical Trainer &mdash; Magic Bus India Organisation</span>
+          <img src={photo} alt="Naveen Lawrence" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent-4)', boxShadow: '0 2px 10px rgba(79,70,229,0.15)' }} />
         </footer>
       </div>
     </div>
