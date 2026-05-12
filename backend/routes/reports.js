@@ -2,18 +2,51 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Report = require('../models/Report');
+const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
+
+// Helper: get all team member IDs for a given user (admin or manager)
+async function getTeamIds(user) {
+  if (user.role === 'manager') {
+    const members = await User.find({ createdBy: user._id }).select('_id');
+    return [user._id, ...members.map(u => u._id)];
+  }
+  if (user.role === 'admin') {
+    // Direct team members created by this admin
+    const directMembers = await User.find({ createdBy: user._id }).select('_id role');
+    const directManagerIds = directMembers.filter(u => u.role === 'manager').map(u => u._id);
+    // Sub-team: employees created by those managers
+    const subMembers = directManagerIds.length > 0
+      ? await User.find({ createdBy: { $in: directManagerIds } }).select('_id')
+      : [];
+    return [user._id, ...directMembers.map(u => u._id), ...subMembers.map(u => u._id)];
+  }
+  return [user._id];
+}
 
 // GET /api/reports
 router.get('/', protect, async (req, res) => {
   try {
     let filter = {};
+
     if (req.user.role === 'employee') {
       filter.submittedBy = req.user._id;
+    } else {
+      // Admin and Manager: scope to their team hierarchy
+      const teamIds = await getTeamIds(req.user);
+      filter.submittedBy = { $in: teamIds };
     }
 
     const { page = 1, limit = 20, userId } = req.query;
-    if (userId && req.user.role !== 'employee') filter.submittedBy = userId;
+
+    // Optional userId filter — only allowed if user is within scope
+    if (userId && req.user.role !== 'employee') {
+      const mongoose = require('mongoose');
+      const targetId = new mongoose.Types.ObjectId(userId);
+      const scopedIds = filter.submittedBy.$in || [filter.submittedBy];
+      const allowed = scopedIds.some(id => id.toString() === targetId.toString());
+      if (allowed) filter.submittedBy = targetId;
+    }
 
     const reports = await Report.find(filter)
       .populate('submittedBy', 'name email role')
@@ -42,7 +75,12 @@ router.get('/:id', protect, async (req, res) => {
 
     if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
 
-    if (req.user.role === 'employee' && report.submittedBy._id.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'employee') {
+      const teamIds = (await getTeamIds(req.user)).map(id => id.toString());
+      if (!teamIds.includes(report.submittedBy._id.toString())) {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+    } else if (report.submittedBy._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
@@ -103,8 +141,17 @@ router.delete('/:id', protect, async (req, res) => {
     const report = await Report.findById(req.params.id);
     if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
 
-    if (report.submittedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
+    const isOwner = report.submittedBy.toString() === req.user._id.toString();
+
+    if (!isOwner) {
+      if (req.user.role === 'admin') {
+        const teamIds = (await getTeamIds(req.user)).map(id => id.toString());
+        if (!teamIds.includes(report.submittedBy.toString())) {
+          return res.status(403).json({ success: false, message: 'Not authorized' });
+        }
+      } else {
+        return res.status(403).json({ success: false, message: 'Not authorized' });
+      }
     }
 
     await Report.findByIdAndDelete(req.params.id);
