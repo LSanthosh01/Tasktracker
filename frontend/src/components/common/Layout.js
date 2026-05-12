@@ -113,7 +113,7 @@ export default function Layout() {
           gap: '10px'
         }}>
           Developed by Naveen
-          <img src={photo} alt="Naveen" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+          <img src={photo} alt="Naveen" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }} />
         </footer>
       </div>
     </div>
