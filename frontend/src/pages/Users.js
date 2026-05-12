@@ -191,7 +191,8 @@ export default function Users() {
         <div className="search-input" style={{ flex: 1, maxWidth: 320 }}>
           <Search className="search-icon" />
           <input className="form-input" placeholder="Search by name or email..."
-            value={search} onChange={e => setSearch(e.target.value)} />
+            value={search} onChange={e => setSearch(e.target.value)}
+            style={{ background: '#ffffff', border: '1px solid #d1d5db' }} />
         </div>
         <select className="filter-select" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
           <option value="">All Roles</option>
