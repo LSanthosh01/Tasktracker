@@ -85,9 +85,12 @@ export default function Login() {
             </Link>
           </p>
 
-          <div style={{ marginTop: 40, textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 500 }}>
-            Developed by Naveen
-            <img src={photo} alt="Naveen" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }} />
+          <div style={{ marginTop: 40, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={photo} alt="Naveen Lawrence" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }} />
+              <span style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '14px' }}>Naveen Lawrence</span>
+            </div>
+            <span>Technical Trainer &mdash; Magic Bus India Organisation</span>
           </div>
         </div>
       </div>

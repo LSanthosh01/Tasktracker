@@ -101,19 +101,21 @@ export default function Layout() {
           textAlign: 'center',
           padding: '20px',
           color: 'var(--text-secondary)',
-          fontSize: '14px',
-          fontWeight: 500,
           background: 'rgba(255, 255, 255, 0.5)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           borderTop: '1px solid var(--border)',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '10px'
+          gap: '6px'
         }}>
-          Developed by Naveen
-          <img src={photo} alt="Naveen" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={photo} alt="Naveen Lawrence" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }} />
+            <span style={{ fontWeight: 600, fontSize: '14px' }}>Naveen Lawrence</span>
+          </div>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Technical Trainer &mdash; Magic Bus India Organisation</span>
         </footer>
       </div>
     </div>
