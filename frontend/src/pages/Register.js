@@ -7,6 +7,8 @@ import photo from '../assets/photo.jpeg';
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', adminSecret: '' });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showAdminSecret, setShowAdminSecret] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -61,13 +63,53 @@ export default function Register() {
             </div>
             <div className="form-group">
               <label className="form-label">Password</label>
-              <input type="password" className="form-input" placeholder="Min 6 characters"
-                value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="form-input"
+                  placeholder="Min 6 characters"
+                  value={form.password}
+                  onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                  style={{ paddingRight: 42 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(p => !p)}
+                  style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                    color: 'var(--text-secondary)', fontSize: 18, display: 'flex', alignItems: 'center'
+                  }}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label">Admin Secret</label>
-              <input type="password" className="form-input" placeholder="Admin registration key"
-                value={form.adminSecret} onChange={e => setForm(p => ({ ...p, adminSecret: e.target.value }))} />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showAdminSecret ? 'text' : 'password'}
+                  className="form-input"
+                  placeholder="Admin registration key"
+                  value={form.adminSecret}
+                  onChange={e => setForm(p => ({ ...p, adminSecret: e.target.value }))}
+                  style={{ paddingRight: 42 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminSecret(p => !p)}
+                  style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                    color: 'var(--text-secondary)', fontSize: 18, display: 'flex', alignItems: 'center'
+                  }}
+                  aria-label={showAdminSecret ? 'Hide admin secret' : 'Show admin secret'}
+                >
+                  {showAdminSecret ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
             <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} disabled={loading}>
               {loading ? 'Creating...' : 'Create Admin Account'}
