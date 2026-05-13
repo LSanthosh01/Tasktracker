@@ -14,7 +14,9 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   process.env.FRONTEND_URL,
-  'https://tasktracker-pied.vercel.app'
+  'https://tasktracker-pied.vercel.app',
+  'https://www.navtasktracker.in',
+  'https://navtasktracker.in'
 ].map(normalizeOrigin).filter(Boolean);
 
 const isVercelAppOrigin = (origin) => {
