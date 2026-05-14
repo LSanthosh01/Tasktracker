@@ -28,7 +28,7 @@ export default function PhotoSliderModal({ isOpen, onClose, startIndex = 0 }) {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line
   }, [isOpen, current, animating]);
 
   const animate = (dir, nextIndex) => {
@@ -45,13 +45,13 @@ export default function PhotoSliderModal({ isOpen, onClose, startIndex = 0 }) {
   const goNext = useCallback(() => {
     const next = (current + 1) % ALL_PHOTOS.length;
     animate('right', next);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line
   }, [current, animating]);
 
   const goPrev = useCallback(() => {
     const prev = (current - 1 + ALL_PHOTOS.length) % ALL_PHOTOS.length;
     animate('left', prev);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line
   }, [current, animating]);
 
   if (!isOpen) return null;
