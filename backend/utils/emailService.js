@@ -18,6 +18,8 @@ const sendTaskAssignmentEmail = async (task) => {
   const assigneeName  = assignedTo?.name  || 'Team Member';
   const assigneeEmail = assignedTo?.email;
   const assignerName  = assignedBy?.name  || 'Your Manager';
+  const assignerEmail = assignedBy?.email || process.env.EMAIL_USER;
+  const assignerRole  = assignedBy?.role  ? `(${assignedBy.role.charAt(0).toUpperCase() + assignedBy.role.slice(1)})` : '';
 
   if (!assigneeEmail) {
     console.warn('[Email] No assignee email found — skipping notification.');
@@ -154,12 +156,13 @@ const sendTaskAssignmentEmail = async (task) => {
 
   try {
     await transporter.sendMail({
-      from: `"TaskTrack" <${process.env.EMAIL_USER}>`,
+      from: `"${assignerName} ${assignerRole} via TaskTrack" <${process.env.EMAIL_USER}>`,
+      replyTo: `"${assignerName}" <${assignerEmail}>`,
       to: assigneeEmail,
-      subject: `📋 New Task Assigned: ${title}`,
+      subject: `📋 New Task Assigned by ${assignerName}: ${title}`,
       html,
     });
-    console.log(`[Email] Task assignment email sent to ${assigneeEmail}`);
+    console.log(`[Email] Task assignment email sent to ${assigneeEmail} (on behalf of ${assignerEmail})`);
   } catch (err) {
     // Log but don't crash the request if email fails
     console.error('[Email] Failed to send assignment email:', err.message);
