@@ -4,11 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Zap } from 'lucide-react';
 import photo from '../assets/photo.jpeg';
+import PhotoSliderModal from '../components/common/PhotoSliderModal';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sliderOpen, setSliderOpen] = useState(false);
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -87,11 +89,25 @@ export default function Login() {
 
           <div style={{ marginTop: 40, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img src={photo} alt="Naveen Lawrence" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }} />
+              <img
+                src={photo}
+                alt="Naveen Lawrence"
+                onClick={() => setSliderOpen(true)}
+                title="View photos"
+                style={{
+                  width: '55px', height: '55px', borderRadius: '50%',
+                  objectFit: 'cover', border: '3px solid white',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                  cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform='scale(1.1)'; e.currentTarget.style.boxShadow='0 4px 20px rgba(108,99,255,0.4)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform='scale(1)';   e.currentTarget.style.boxShadow='0 2px 10px rgba(0,0,0,0.15)'; }}
+              />
               <span style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '14px' }}>Naveen Lawrence</span>
             </div>
             <span>Technical Trainer &mdash; Magic Bus India Organisation</span>
           </div>
+          <PhotoSliderModal isOpen={sliderOpen} onClose={() => setSliderOpen(false)} startIndex={0} />
         </div>
       </div>
     </div>

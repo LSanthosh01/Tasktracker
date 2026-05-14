@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -6,6 +6,7 @@ import {
   User, LogOut, Zap, Shield, Briefcase, UserCheck
 } from 'lucide-react';
 import photo from '../../assets/photo.jpeg';
+import PhotoSliderModal from './PhotoSliderModal';
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
@@ -20,6 +21,7 @@ export default function Layout() {
   const { user, logout, isAdmin, isManager } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [sliderOpen, setSliderOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -113,8 +115,22 @@ export default function Layout() {
             <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>Naveen Lawrence</div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Technical Trainer &mdash; Magic Bus India Organisation</div>
           </div>
-          <img src={photo} alt="Naveen Lawrence" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent-4)', boxShadow: '0 2px 10px rgba(79,70,229,0.15)' }} />
+          <img
+            src={photo}
+            alt="Naveen Lawrence"
+            onClick={() => setSliderOpen(true)}
+            title="View photos"
+            style={{
+              width: '55px', height: '55px', borderRadius: '50%',
+              objectFit: 'cover', border: '3px solid var(--accent-4)',
+              boxShadow: '0 2px 10px rgba(79,70,229,0.15)',
+              cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform='scale(1.1)'; e.currentTarget.style.boxShadow='0 4px 20px rgba(108,99,255,0.4)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform='scale(1)';   e.currentTarget.style.boxShadow='0 2px 10px rgba(79,70,229,0.15)'; }}
+          />
         </footer>
+        <PhotoSliderModal isOpen={sliderOpen} onClose={() => setSliderOpen(false)} startIndex={0} />
       </div>
     </div>
   );
