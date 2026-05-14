@@ -261,9 +261,12 @@ export default function Users() {
                           onClick={() => handleToggleActive(u)} title={u.isActive ? 'Deactivate' : 'Activate'}>
                           <UserCheck size={14} />
                         </button>
-                        <button className="btn btn-danger btn-icon btn-sm" onClick={() => handleDelete(u._id, u.name)} title="Delete">
-                          <Trash2 size={14} />
-                        </button>
+                        {/* Managers cannot delete admins — only employees */}
+                        {!(user.role === 'manager' && u.role === 'admin') && (
+                          <button className="btn btn-danger btn-icon btn-sm" onClick={() => handleDelete(u._id, u.name)} title="Delete">
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
