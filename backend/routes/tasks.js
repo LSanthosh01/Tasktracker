@@ -4,6 +4,7 @@ const { body, validationResult } = require('express-validator');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
+const { sendTaskAssignmentEmail } = require('../utils/emailService');
 
 // GET /api/tasks
 router.get('/', protect, async (req, res) => {
@@ -81,6 +82,9 @@ router.post('/', protect, authorize('admin', 'manager'), [
       { path: 'assignedBy', select: 'name email role' },
       { path: 'assignedTo', select: 'name email role' }
     ]);
+
+    // Send assignment email (non-blocking — errors are logged, not thrown)
+    sendTaskAssignmentEmail(populated);
 
     res.status(201).json({ success: true, task: populated });
   } catch (err) {
