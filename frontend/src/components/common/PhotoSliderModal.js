@@ -100,15 +100,20 @@ export default function PhotoSliderModal({ isOpen, onClose, startIndex = 0 }) {
           max-width: 520px; width: 92vw;
         }
         .ps-img-wrap {
-          width: 100%; aspect-ratio: 3/4;
-          max-height: 72vh;
+          width: 100%;
+          max-height: 82vh;
           overflow: hidden; border-radius: 20px;
           box-shadow: 0 24px 80px rgba(0,0,0,0.7);
-          background: #111;
+          background: #0a0a0a;
           position: relative;
+          display: flex; align-items: center; justify-content: center;
         }
         .ps-img {
-          width: 100%; height: 100%; object-fit: cover;
+          max-width: 100%;
+          max-height: 82vh;
+          width: auto;
+          height: auto;
+          object-fit: contain;
           border-radius: 20px;
           display: block;
         }
