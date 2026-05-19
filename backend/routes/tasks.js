@@ -49,7 +49,7 @@ router.get('/:id', protect, async (req, res) => {
   }
 });
 
-// POST /api/tasks
+// POST /api/tasks  (supports assigning to multiple employees)
 router.post('/', protect, authorize('admin', 'manager'), [
   body('title').notEmpty().withMessage('Title is required'),
   body('description').notEmpty().withMessage('Description is required'),
@@ -62,31 +62,51 @@ router.post('/', protect, authorize('admin', 'manager'), [
   try {
     const { title, description, assignedTo, deadline, priority, tags } = req.body;
 
-    const assignee = await User.findById(assignedTo);
-    if (!assignee) return res.status(404).json({ success: false, message: 'Assignee not found' });
+    // Normalise to an array so the same logic handles single & multi-assign
+    const assigneeIds = Array.isArray(assignedTo) ? assignedTo : [assignedTo];
 
-    // Manager can only assign to employees
-    if (req.user.role === 'manager' && assignee.role !== 'employee') {
-      return res.status(403).json({ success: false, message: 'Managers can only assign tasks to employees' });
-    }
-    // Admin can assign to managers/employees
-    if (req.user.role === 'admin' && assignee.role === 'admin') {
-      return res.status(403).json({ success: false, message: 'Cannot assign tasks to another admin' });
+    if (assigneeIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'At least one assignee is required' });
     }
 
-    const task = await Task.create({
-      title, description, assignedBy: req.user._id, assignedTo, deadline, priority, tags
-    });
+    // Validate every assignee
+    const assignees = await User.find({ _id: { $in: assigneeIds } });
+    if (assignees.length !== assigneeIds.length) {
+      return res.status(404).json({ success: false, message: 'One or more assignees not found' });
+    }
 
-    const populated = await task.populate([
-      { path: 'assignedBy', select: 'name email role' },
-      { path: 'assignedTo', select: 'name email role' }
-    ]);
+    for (const assignee of assignees) {
+      if (req.user.role === 'manager' && assignee.role !== 'employee') {
+        return res.status(403).json({ success: false, message: `Managers can only assign tasks to employees (${assignee.name} is a ${assignee.role})` });
+      }
+      if (req.user.role === 'admin' && assignee.role === 'admin') {
+        return res.status(403).json({ success: false, message: `Cannot assign tasks to another admin (${assignee.name})` });
+      }
+    }
 
-    // Send assignment email (non-blocking — errors are logged, not thrown)
-    sendTaskAssignmentEmail(populated);
+    // Create one independent task per assignee
+    const createdTasks = [];
+    for (const id of assigneeIds) {
+      const task = await Task.create({
+        title, description, assignedBy: req.user._id, assignedTo: id, deadline, priority, tags
+      });
 
-    res.status(201).json({ success: true, task: populated });
+      const populated = await task.populate([
+        { path: 'assignedBy', select: 'name email role' },
+        { path: 'assignedTo', select: 'name email role' }
+      ]);
+
+      // Send assignment email (non-blocking)
+      sendTaskAssignmentEmail(populated);
+      createdTasks.push(populated);
+    }
+
+    // Return single task for backward-compat, array for multi-assign
+    if (createdTasks.length === 1) {
+      res.status(201).json({ success: true, task: createdTasks[0] });
+    } else {
+      res.status(201).json({ success: true, tasks: createdTasks, count: createdTasks.length });
+    }
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -108,6 +128,10 @@ router.put('/:id', protect, async (req, res) => {
 
     // Employees can only update status and selfRating
     if (req.user.role === 'employee') {
+      // Employees cannot set status to 'completed' directly — must be approved
+      if (req.body.status && req.body.status === 'completed') {
+        return res.status(403).json({ success: false, message: 'Tasks can only be completed after manager/admin approval' });
+      }
       if (req.body.status) task.status = req.body.status;
       if (req.body.selfRating !== undefined) task.selfRating = req.body.selfRating;
     } else {
