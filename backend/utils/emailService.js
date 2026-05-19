@@ -115,9 +115,9 @@ const sendTaskAssignmentEmail = async (task) => {
                             <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">
                               Deadline
                             </div>
-                            <div style="font-size:13px;font-weight:600;color:#111827;">
-                              📅 ${deadlineStr}
-                            </div>
+                             <div style="font-size:13px;font-weight:600;color:#111827;">
+                               ${deadlineStr}
+                             </div>
                           </div>
                         </td>
                       </tr>
@@ -160,17 +160,38 @@ const sendTaskAssignmentEmail = async (task) => {
 </html>
   `;
 
+  // Plain-text fallback (helps avoid spam filters)
+  const text = [
+    `Hi ${assigneeName},`,
+    ``,
+    `${assignerName} has assigned you a new task on TaskTrack.`,
+    ``,
+    `Task:        ${title}`,
+    `Description: ${description}`,
+    `Priority:    ${priority || 'medium'}`,
+    `Deadline:    ${deadlineStr}`,
+    ``,
+    `Log in to view your tasks: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`,
+    ``,
+    `-- TaskTrack Notifications`,
+  ].join('\n');
+
   try {
     await transporter.sendMail({
-      from: `"${assignerName} ${assignerRole} via TaskTrack" <${process.env.EMAIL_USER}>`,
+      from: `"TaskTrack" <${process.env.EMAIL_USER}>`,
       replyTo: `"${assignerName}" <${assignerEmail}>`,
       to: assigneeEmail,
-      subject: `📋 New Task Assigned by ${assignerName}: ${title}`,
+      subject: `New Task Assigned by ${assignerName}: ${title}`,
+      text,   // plain-text version — critical for spam scoring
       html,
+      headers: {
+        'X-Mailer': 'TaskTrack Mailer',
+        'X-Priority': '3',       // Normal priority (1=high triggers spam)
+        'Importance': 'Normal',
+      },
     });
     console.log(`[Email] Task assignment email sent to ${assigneeEmail} (on behalf of ${assignerEmail})`);
   } catch (err) {
-    // Log but don't crash the request if email fails
     console.error('[Email] Failed to send assignment email:', err.message);
   }
 };
