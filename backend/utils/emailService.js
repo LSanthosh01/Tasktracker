@@ -1,13 +1,5 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
 /**
  * Send a task assignment email to the assignee.
  * @param {Object} task  - populated task document
@@ -21,10 +13,24 @@ const sendTaskAssignmentEmail = async (task) => {
   const assignerEmail = assignedBy?.email || process.env.EMAIL_USER;
   const assignerRole  = assignedBy?.role  ? `(${assignedBy.role.charAt(0).toUpperCase() + assignedBy.role.slice(1)})` : '';
 
+  // Guard: skip if credentials or recipient not configured
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('[Email] EMAIL_USER or EMAIL_PASS not set — skipping notification.');
+    return;
+  }
   if (!assigneeEmail) {
     console.warn('[Email] No assignee email found — skipping notification.');
     return;
   }
+
+  // Create transporter fresh each time so env vars are always up-to-date
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS.replace(/\s/g, ''), // strip spaces from app password
+    },
+  });
 
   const deadlineStr = deadline
     ? new Date(deadline).toLocaleDateString('en-IN', {

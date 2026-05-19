@@ -96,8 +96,10 @@ router.post('/', protect, authorize('admin', 'manager'), [
         { path: 'assignedTo', select: 'name email role' }
       ]);
 
-      // Send assignment email (non-blocking)
-      sendTaskAssignmentEmail(populated);
+      // Send assignment email (non-blocking — errors logged, not thrown)
+      sendTaskAssignmentEmail(populated).catch(err =>
+        console.error('[Email] Unhandled error sending assignment email:', err.message)
+      );
       createdTasks.push(populated);
     }
 
