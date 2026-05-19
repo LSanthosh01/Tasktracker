@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { Plus, Search, Edit, Trash2, Calendar, User, CheckCircle, ChevronDown, X } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Calendar, User, ChevronDown, X } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx-js-style';
 
@@ -76,76 +76,7 @@ const MultiSelectDropdown = ({ users, selectedIds, onChange }) => {
   );
 };
 
-// ─── Submit Completed Modal (Employee) ────────────────────────────────────────
-const SubmitCompletedModal = ({ task, onClose, onSave }) => {
-  const [selfRating, setSelfRating] = useState(5);
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await api.put(`/tasks/${task._id}`, {
-        status: 'under-review',
-        selfRating
-      });
-      toast.success('Task submitted for approval');
-      onSave();
-      onClose();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to submit task');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 440 }}>
-        <div className="modal-header">
-          <h2 className="modal-title">Submit Task as Completed</h2>
-          <button onClick={onClose} className="btn btn-secondary btn-icon btn-sm">✕</button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            <div style={{ marginBottom: 16, padding: '12px 16px', background: 'var(--bg-secondary, #f8f9fa)', borderRadius: 8, border: '1px solid var(--border-color, #e2e8f0)' }}>
-              <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{task.title}</div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                Assigned by: {task.assignedBy?.name}
-              </div>
-            </div>
-            <div style={{ padding: '12px 16px', background: '#fffbeb', borderRadius: 8, border: '1px solid #fde68a', marginBottom: 16, fontSize: 13, color: '#92400e' }}>
-              ⚠️ Once submitted, this task will be sent to <strong>{task.assignedBy?.name}</strong> for review and approval.
-            </div>
-            <div className="form-group">
-              <label className="form-label">Rate Your Performance</label>
-              <div className="star-rating-input">
-                {[1, 2, 3, 4, 5].map(n => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`star-btn ${n <= selfRating ? 'active' : ''}`}
-                    onClick={() => setSelfRating(n)}
-                  >
-                    ★
-                  </button>
-                ))}
-                <span className="star-rating-label">{selfRating}/5 Stars</span>
-              </div>
-            </div>
-          </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-success" disabled={loading}>
-              <CheckCircle size={16} />
-              {loading ? 'Submitting...' : 'Submit for Approval'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 // ─── Task Create / Edit Modal ─────────────────────────────────────────────────
 const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
@@ -169,9 +100,17 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
     setLoading(true);
     try {
       if (isEdit) {
-        // Edit mode: only single assignee
-        await api.put(`/tasks/${task._id}`, { ...form, assignedTo: form.assignedTo[0] });
-        toast.success('Task updated');
+        // For employees: 'completed' in dropdown maps to 'under-review' on backend
+        const submitForm = { ...form, assignedTo: form.assignedTo[0] };
+        if (isEmployee && submitForm.status === 'completed') {
+          submitForm.status = 'under-review';
+        }
+        await api.put(`/tasks/${task._id}`, submitForm);
+        if (isEmployee && form.status === 'completed') {
+          toast.success('Task submitted for approval');
+        } else {
+          toast.success('Task updated');
+        }
       } else {
         // Create mode: supports multi-assign
         const payload = {
@@ -256,17 +195,25 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
                   <label className="form-label">Status</label>
                   <select className="form-select" value={form.status}
                     onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>
-                    {(isEmployee ? STATUS_OPTIONS.filter(s => s !== 'completed') : STATUS_OPTIONS).map(s => <option key={s} value={s}>{s}</option>)}
+                    {(isEmployee
+                      ? STATUS_OPTIONS.filter(s => s !== 'under-review') // employees see 'completed' instead of 'under-review'
+                      : STATUS_OPTIONS
+                    ).map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
-                {form.status === 'under-review' && isEmployee && (
-                  <div className="form-group">
-                    <label className="form-label">Self Rating (Stars)</label>
-                    <select className="form-select" value={form.selfRating}
-                      onChange={e => setForm(p => ({ ...p, selfRating: Number(e.target.value) }))}>
-                      {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
-                    </select>
-                  </div>
+                {form.status === 'completed' && isEmployee && (
+                  <>
+                    <div style={{ padding: '10px 14px', background: '#fffbeb', borderRadius: 8, border: '1px solid #fde68a', marginBottom: 16, fontSize: 13, color: '#92400e' }}>
+                      ⚠️ This task will be sent to <strong>{task?.assignedBy?.name}</strong> for review and approval.
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Self Rating (Stars)</label>
+                      <select className="form-select" value={form.selfRating}
+                        onChange={e => setForm(p => ({ ...p, selfRating: Number(e.target.value) }))}>
+                        {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                      </select>
+                    </div>
+                  </>
                 )}
               </>
             )}
@@ -363,7 +310,7 @@ export default function Tasks() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null); // null | 'create' | task object
   const [reviewModal, setReviewModal] = useState(null); // task object
-  const [submitModal, setSubmitModal] = useState(null); // task object for employee completion
+
   const [filters, setFilters] = useState({ status: '', priority: '', search: '' });
 
   const canCreate = user.role === 'admin' || user.role === 'manager';
@@ -547,16 +494,6 @@ export default function Tasks() {
                     <td><span className={`badge badge-${task.status}`}>{getStatusLabel(task.status)}</span></td>
                     <td>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        {/* Employee: Submit Completed button */}
-                        {user.role === 'employee' && (task.status === 'pending' || task.status === 'in-progress') && (
-                          <button
-                            className="btn btn-success btn-sm"
-                            onClick={() => setSubmitModal(task)}
-                            title="Submit as Completed"
-                          >
-                            <CheckCircle size={14} /> Completed
-                          </button>
-                        )}
                         {/* Manager/Admin: Review button for under-review tasks */}
                         {(user.role === 'admin' || (user.role === 'manager' && task.assignedBy?._id === user._id)) && task.status === 'under-review' && (
                           <button className="btn btn-success btn-sm" onClick={() => setReviewModal(task)}>
@@ -606,13 +543,7 @@ export default function Tasks() {
           onSave={fetchData}
         />
       )}
-      {submitModal && (
-        <SubmitCompletedModal
-          task={submitModal}
-          onClose={() => setSubmitModal(null)}
-          onSave={fetchData}
-        />
-      )}
+
     </div>
   );
 }
