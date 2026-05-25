@@ -32,9 +32,12 @@ router.get('/', protect, async (req, res) => {
     if (req.user.role === 'employee') {
       filter.submittedBy = req.user._id;
     } else {
-      // Admin and Manager: scope to their team hierarchy
+      // Admin and Manager: scope to their team hierarchy + reports tagged to them
       const teamIds = await getTeamIds(req.user);
-      filter.submittedBy = { $in: teamIds };
+      filter.$or = [
+        { submittedBy: { $in: teamIds } },
+        { taggedTo: req.user._id }
+      ];
     }
 
     const { page = 1, limit = 20, userId } = req.query;
@@ -43,9 +46,13 @@ router.get('/', protect, async (req, res) => {
     if (userId && req.user.role !== 'employee') {
       const mongoose = require('mongoose');
       const targetId = new mongoose.Types.ObjectId(userId);
-      const scopedIds = filter.submittedBy.$in || [filter.submittedBy];
-      const allowed = scopedIds.some(id => id.toString() === targetId.toString());
-      if (allowed) filter.submittedBy = targetId;
+      const teamIds = await getTeamIds(req.user);
+      const allowed = teamIds.some(id => id.toString() === targetId.toString());
+      if (allowed) {
+        // Replace $or with direct submittedBy filter
+        delete filter.$or;
+        filter.submittedBy = targetId;
+      }
     }
 
     const reports = await Report.find(filter)
@@ -77,7 +84,9 @@ router.get('/:id', protect, async (req, res) => {
 
     if (req.user.role !== 'employee') {
       const teamIds = (await getTeamIds(req.user)).map(id => id.toString());
-      if (!teamIds.includes(report.submittedBy._id.toString())) {
+      const isTeamReport = teamIds.includes(report.submittedBy._id.toString());
+      const isTaggedToMe = report.taggedTo && report.taggedTo._id.toString() === req.user._id.toString();
+      if (!isTeamReport && !isTaggedToMe) {
         return res.status(403).json({ success: false, message: 'Access denied' });
       }
     } else if (report.submittedBy._id.toString() !== req.user._id.toString()) {
