@@ -141,7 +141,11 @@ const ReportModal = ({ onClose, onSave }) => {
 };
 
 const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
-  const canReview = currentUser.role !== 'employee';
+  // Managers' reports can only be reviewed by admin
+  const isManagerReport = report.submittedBy?.role === 'manager';
+  const canReview = isManagerReport
+    ? currentUser.role === 'admin'
+    : currentUser.role !== 'employee';
   const [reviewForm, setReviewForm] = useState({ status: 'reviewed', reviewNotes: '', managerRatingStars: 5 });
 
   const handleReview = async () => {
@@ -318,8 +322,7 @@ export default function Reports() {
                 Hours: r.hoursWorked,
                 SelfRating: r.selfRating,
                 Status: r.status,
-                Tasks: r.tasksWorkedOn.map(t => t.taskTitle).join(', '),
-                Description: r.progressDescription,
+                ProgressDescription: r.progressDescription,
                 ReviewedBy: r.reviewedBy?.name || '',
                 ReviewNotes: r.reviewNotes || '',
                 ManagerStars: r.managerRatingStars || ''

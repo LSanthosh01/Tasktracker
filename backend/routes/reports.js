@@ -127,8 +127,13 @@ router.post('/', protect, [
 // PUT /api/reports/:id/review
 router.put('/:id/review', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const report = await Report.findById(req.params.id);
+    const report = await Report.findById(req.params.id).populate('submittedBy', 'role');
     if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
+
+    // Manager-submitted reports can only be reviewed by admin
+    if (report.submittedBy.role === 'manager' && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only admin can review manager reports' });
+    }
 
     report.status = req.body.status || 'reviewed';
     report.reviewNotes = req.body.reviewNotes;
