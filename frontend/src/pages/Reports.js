@@ -141,11 +141,8 @@ const ReportModal = ({ onClose, onSave }) => {
 };
 
 const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
-  // Managers' reports can only be reviewed by admin
-  const isManagerReport = report.submittedBy?.role === 'manager';
-  const canReview = isManagerReport
-    ? currentUser.role === 'admin'
-    : currentUser.role !== 'employee';
+  // Both admin and manager can review/approve any submitted report
+  const canReview = currentUser.role === 'admin' || currentUser.role === 'manager';
   const [reviewForm, setReviewForm] = useState({ status: 'reviewed', reviewNotes: '', managerRatingStars: 5 });
 
   const handleReview = async () => {
@@ -325,7 +322,7 @@ export default function Reports() {
                 ProgressDescription: r.progressDescription,
                 ReviewedBy: r.reviewedBy?.name || '',
                 ReviewNotes: r.reviewNotes || '',
-                ManagerStars: r.managerRatingStars || ''
+                'Admin/Manager Stars': r.managerRatingStars || ''
               }));
               const ws = XLSX.utils.json_to_sheet(data);
 

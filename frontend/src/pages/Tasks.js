@@ -386,8 +386,8 @@ export default function Tasks() {
                 Status: t.status,
                 Priority: t.priority,
                 SelfRating: t.selfRating,
-                ManagerStars: t.managerRatingStars,
-                ManagerPercentage: t.managerRatingPercentage
+                'Admin/Manager Stars': t.managerRatingStars,
+                'Admin/Manager Percentage': t.managerRatingPercentage
               }));
               const ws = XLSX.utils.json_to_sheet(data);
               
