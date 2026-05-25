@@ -143,7 +143,8 @@ const ReportModal = ({ onClose, onSave }) => {
 const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
   // Both admin and manager can review/approve any submitted report
   const canReview = currentUser.role === 'admin' || currentUser.role === 'manager';
-  const [reviewForm, setReviewForm] = useState({ status: 'reviewed', reviewNotes: '', managerRatingStars: 5 });
+  const [reviewForm, setReviewForm] = useState({ status: report.status === 'reviewed' ? 'approved' : 'reviewed', reviewNotes: '', managerRatingStars: 5 });
+  const canApproveOrReview = report.status === 'submitted' || report.status === 'reviewed';
 
   const handleReview = async () => {
     try {
@@ -227,20 +228,22 @@ const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
             </div>
           )}
 
-          {canReview && report.status === 'submitted' && (
+          {canReview && canApproveOrReview && (
             <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: 16 }}>
-              <p style={{ fontWeight: 600, marginBottom: 12, fontSize: 14 }}>Review this report</p>
+              <p style={{ fontWeight: 600, marginBottom: 12, fontSize: 14 }}>
+                {report.status === 'reviewed' ? 'Approve this report' : 'Review this report'}
+              </p>
               <div className="grid-2">
                 <div className="form-group">
                   <label className="form-label">Status</label>
                   <select className="form-select" value={reviewForm.status}
                     onChange={e => setReviewForm(p => ({ ...p, status: e.target.value }))}>
-                    <option value="reviewed">Mark as Reviewed</option>
+                    {report.status === 'submitted' && <option value="reviewed">Mark as Reviewed</option>}
                     <option value="approved">Mark as Approved</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Manager Rating (Stars)</label>
+                  <label className="form-label">Admin/Manager Rating (Stars)</label>
                   <select className="form-select" value={reviewForm.managerRatingStars}
                     onChange={e => setReviewForm(p => ({ ...p, managerRatingStars: Number(e.target.value) }))}>
                     {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
@@ -256,9 +259,9 @@ const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
         </div>
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
-          {canReview && report.status === 'submitted' && (
+          {canReview && canApproveOrReview && (
             <button className="btn btn-success" onClick={handleReview}>
-              <CheckCircle size={15} /> Submit Review
+              <CheckCircle size={15} /> {report.status === 'reviewed' ? 'Approve Report' : 'Submit Review'}
             </button>
           )}
         </div>
