@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import photo from '../../assets/photo.jpeg';
 import PhotoSliderModal from './PhotoSliderModal';
+import NotificationBell from './NotificationBell';
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
@@ -90,6 +91,8 @@ export default function Layout() {
             <div className="header-title">{pageName}</div>
           </div>
           <div className="header-actions">
+            <NotificationBell />
+            <div className="header-divider" />
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
               <RoleIcon size={15} />
               <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{user?.role}</span>
