@@ -21,8 +21,8 @@ const ReportModal = ({ onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    api.get('/tasks?status=in-progress&limit=50').then(r => setTasks(r.data.tasks)).catch(() => {});
-    api.get('/users/managers').then(r => setManagers(r.data.managers)).catch(() => {});
+    api.get('/tasks?status=in-progress&limit=50').then(r => setTasks(r.data.tasks)).catch(() => { });
+    api.get('/users/managers').then(r => setManagers(r.data.managers)).catch(() => { });
   }, []);
 
   const toggleTask = (taskId, title) => {
@@ -303,14 +303,20 @@ export default function Reports() {
     }
   };
 
-  const filtered = reports.filter(r => !filter || r.status === filter);
+  const filtered = reports.filter(r => {
+    if (filter && r.status !== filter) return false;
+    if (user.role === 'admin') {
+      return r.submittedBy?.role === 'manager';
+    }
+    return true;
+  });
 
   return (
     <div>
       <div className="page-header">
         <div>
           <h1 className="page-title">Work Reports</h1>
-          <p className="page-subtitle">{reports.length} report{reports.length !== 1 ? 's' : ''} total</p>
+          <p className="page-subtitle">{filtered.length} report{filtered.length !== 1 ? 's' : ''} total</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           {user.role !== 'employee' && (
