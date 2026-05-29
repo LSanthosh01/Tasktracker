@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 import { Bell, AlertTriangle, Clock, X, CheckCircle } from 'lucide-react';
 import { format, differenceInHours, differenceInDays, isPast } from 'date-fns';
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export default function NotificationBell() {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(() => {
@@ -21,6 +23,10 @@ export default function NotificationBell() {
 
     tasks.forEach(task => {
       if (task.status === 'completed') return;
+
+      // Only notify if the task is assigned directly to the logged-in user
+      const assigneeId = task.assignedTo?._id || task.assignedTo;
+      if (assigneeId !== user?._id) return;
 
       const deadline = new Date(task.deadline);
       const hoursUntil = differenceInHours(deadline, now);
@@ -67,7 +73,7 @@ export default function NotificationBell() {
     });
 
     return notifs;
-  }, []);
+  }, [user?._id]);
 
   const fetchNotifications = useCallback(async () => {
     try {
