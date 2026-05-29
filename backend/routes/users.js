@@ -6,6 +6,16 @@ const Report = require('../models/Report');
 const { protect, authorize, generateToken } = require('../middleware/auth');
 
 const getTenantFilter = async (user) => {
+  if (user.role === 'manager') {
+    return {
+      $or: [
+        { _id: user.createdBy }, // the admin who created this manager
+        { _id: user._id },       // this manager themselves
+        { createdBy: user._id }  // employees created by this manager
+      ]
+    };
+  }
+
   const adminId = user.role === 'admin' ? user._id : user.createdBy;
   const managers = await User.find({ createdBy: adminId, role: 'manager' }).select('_id');
   const managerIds = managers.map(m => m._id);
