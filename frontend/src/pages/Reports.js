@@ -78,7 +78,7 @@ const ReportModal = ({ onClose, onSave }) => {
                 <label className="form-label">Self Rating (Stars)</label>
                 <select className="form-select" value={form.selfRating}
                   onChange={e => setForm(p => ({ ...p, selfRating: Number(e.target.value) }))}>
-                  {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                  {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
                 </select>
               </div>
             </div>
@@ -192,7 +192,7 @@ const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
             <div>
               <span className={`badge badge-${report.status}`}>{report.status}</span>
             </div>
-            {report.selfRating && (
+            {report.selfRating !== undefined && report.selfRating !== null && (
               <div>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>Self Rating</p>
                 <p style={{ fontWeight: 600 }}>★ {report.selfRating}</p>

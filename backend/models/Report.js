@@ -40,7 +40,7 @@ const reportSchema = new mongoose.Schema({
     ref: 'User'
   },
   reviewNotes: { type: String },
-  selfRating: { type: Number, min: 1, max: 5 },
+  selfRating: { type: Number, min: 0, max: 5 },
   managerRatingStars: { type: Number, min: 0, max: 5 }
 }, { timestamps: true });
 

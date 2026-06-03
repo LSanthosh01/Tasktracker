@@ -210,7 +210,7 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
                       <label className="form-label">Self Rating (Stars)</label>
                       <select className="form-select" value={form.selfRating}
                         onChange={e => setForm(p => ({ ...p, selfRating: Number(e.target.value) }))}>
-                        {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                        {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
                       </select>
                     </div>
                   </>
@@ -264,7 +264,7 @@ const ReviewModal = ({ task, onClose, onSave }) => {
               <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 2 }}>
                 Submitted by: {task.assignedTo?.name}
               </div>
-              {task.selfRating && (
+              {task.selfRating !== undefined && task.selfRating !== null && (
                 <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
                   Self Rating: {'★'.repeat(task.selfRating)}{'☆'.repeat(5 - task.selfRating)} ({task.selfRating}/5)
                 </div>
