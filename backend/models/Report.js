@@ -41,7 +41,7 @@ const reportSchema = new mongoose.Schema({
   },
   reviewNotes: { type: String },
   selfRating: { type: Number, min: 1, max: 5 },
-  managerRatingStars: { type: Number, min: 1, max: 5 }
+  managerRatingStars: { type: Number, min: 0, max: 5 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Report', reportSchema);

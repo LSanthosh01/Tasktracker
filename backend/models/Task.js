@@ -39,7 +39,7 @@ const taskSchema = new mongoose.Schema({
   tags: [{ type: String }],
   completedAt: { type: Date },
   selfRating: { type: Number, min: 1, max: 5 },
-  managerRatingStars: { type: Number, min: 1, max: 5 },
+  managerRatingStars: { type: Number, min: 0, max: 5 },
   managerRatingPercentage: { type: Number, min: 0, max: 100 },
   reviewNotes: { type: String }
 }, { timestamps: true });

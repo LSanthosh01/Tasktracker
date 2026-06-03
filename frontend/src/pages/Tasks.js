@@ -275,7 +275,7 @@ const ReviewModal = ({ task, onClose, onSave }) => {
                 <label className="form-label">Rating (Stars)</label>
                 <select className="form-select" value={form.managerRatingStars}
                   onChange={e => setForm(p => ({ ...p, managerRatingStars: Number(e.target.value) }))}>
-                  {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                  {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
                 </select>
               </div>
               <div className="form-group">
@@ -330,7 +330,7 @@ export default function Tasks() {
       if (canCreate) {
         const usersRes = await api.get('/users');
         const eligible = usersRes.data.users.filter(u =>
-          user.role === 'admin' ? u.role !== 'admin' : u.role === 'employee'
+          user.role === 'admin' ? u.role === 'manager' : u.role === 'employee'
         );
         setUsers(eligible);
       }
@@ -377,7 +377,7 @@ export default function Tasks() {
         <div style={{ display: 'flex', gap: 12 }}>
           {canCreate && (
             <button className="btn btn-outline" onClick={() => {
-              const data = tasks.map(t => ({
+              const data = filtered.map(t => ({
                 Title: t.title,
                 Description: t.description,
                 AssignedTo: t.assignedTo?.name,
@@ -513,7 +513,7 @@ export default function Tasks() {
                           </button>
                         )}
                       </div>
-                      {task.status === 'completed' && task.managerRatingStars && (
+                      {task.status === 'completed' && task.managerRatingStars !== undefined && task.managerRatingStars !== null && (
                         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
                           ★ {task.managerRatingStars}/5 • {task.managerRatingPercentage}%
                         </div>

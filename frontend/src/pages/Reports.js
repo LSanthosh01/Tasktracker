@@ -195,7 +195,7 @@ const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
                 <p style={{ fontWeight: 600 }}>★ {report.selfRating}</p>
               </div>
             )}
-            {report.managerRatingStars && (
+            {report.managerRatingStars !== undefined && report.managerRatingStars !== null && (
               <div>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>Manager Rating</p>
                 <p style={{ fontWeight: 600 }}>★ {report.managerRatingStars}</p>
@@ -246,7 +246,7 @@ const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
                   <label className="form-label">Admin/Manager Rating (Stars)</label>
                   <select className="form-select" value={reviewForm.managerRatingStars}
                     onChange={e => setReviewForm(p => ({ ...p, managerRatingStars: Number(e.target.value) }))}>
-                    {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                    {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
                   </select>
                 </div>
               </div>
@@ -321,7 +321,11 @@ export default function Reports() {
         <div style={{ display: 'flex', gap: 12 }}>
           {user.role !== 'employee' && (
             <button className="btn btn-outline" onClick={() => {
-              const data = reports.map(r => ({
+              const exportReports = reports.filter(r => {
+                if (filter && r.status !== filter) return false;
+                return true;
+              });
+              const data = exportReports.map(r => ({
                 SubmittedBy: r.submittedBy?.name,
                 Role: r.submittedBy?.role,
                 Date: format(new Date(r.date), 'yyyy-MM-dd'),
@@ -431,7 +435,7 @@ export default function Reports() {
                         </div>
                       ) : (
                         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                          {report.managerRatingStars ? `★ ${report.managerRatingStars}/5` : <span style={{ color: 'var(--text-muted)' }}>No Rating</span>}
+                          {report.managerRatingStars !== undefined && report.managerRatingStars !== null ? `★ ${report.managerRatingStars}/5` : <span style={{ color: 'var(--text-muted)' }}>No Rating</span>}
                         </div>
                       )}
                     </td>

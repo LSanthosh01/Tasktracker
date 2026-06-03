@@ -13,12 +13,30 @@ router.get('/', protect, async (req, res) => {
     if (req.user.role === 'employee') {
       filter.assignedTo = req.user._id;
     } else if (req.user.role === 'manager') {
-      filter.$or = [{ assignedBy: req.user._id }, { assignedTo: req.user._id }];
+      const members = await User.find({ createdBy: req.user._id }).select('_id');
+      const teamUserIds = [req.user._id, ...members.map(u => u._id)];
+      filter.$or = [
+        { assignedBy: { $in: teamUserIds } },
+        { assignedTo: { $in: teamUserIds } }
+      ];
     } else if (req.user.role === 'admin') {
-      filter.assignedBy = req.user._id;
+      const managers = await User.find({ createdBy: req.user._id, role: 'manager' }).select('_id');
+      const managerIds = managers.map(m => m._id);
+      const tenantUsers = await User.find({
+        $or: [
+          { _id: req.user._id },
+          { createdBy: req.user._id },
+          { createdBy: { $in: managerIds } }
+        ]
+      }).select('_id');
+      const tenantUserIds = tenantUsers.map(u => u._id);
+      filter.$or = [
+        { assignedBy: { $in: tenantUserIds } },
+        { assignedTo: { $in: tenantUserIds } }
+      ];
     }
 
-    const { status, priority, page = 1, limit = 20 } = req.query;
+    const { status, priority, page = 1, limit = 1000 } = req.query;
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
 
@@ -79,8 +97,8 @@ router.post('/', protect, authorize('admin', 'manager'), [
       if (req.user.role === 'manager' && assignee.role !== 'employee') {
         return res.status(403).json({ success: false, message: `Managers can only assign tasks to employees (${assignee.name} is a ${assignee.role})` });
       }
-      if (req.user.role === 'admin' && assignee.role === 'admin') {
-        return res.status(403).json({ success: false, message: `Cannot assign tasks to another admin (${assignee.name})` });
+      if (req.user.role === 'admin' && assignee.role !== 'manager') {
+        return res.status(403).json({ success: false, message: `Admins can only assign tasks to managers (${assignee.name} is a ${assignee.role})` });
       }
     }
 

@@ -40,7 +40,7 @@ router.get('/', protect, async (req, res) => {
       ];
     }
 
-    const { page = 1, limit = 20, userId } = req.query;
+    const { page = 1, limit = 1000, userId } = req.query;
 
     // Optional userId filter — only allowed if user is within scope
     if (userId && req.user.role !== 'employee') {
