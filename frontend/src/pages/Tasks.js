@@ -354,11 +354,18 @@ export default function Tasks() {
     }
   };
 
-  const filtered = tasks.filter(t =>
-    !filters.search ||
-    t.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-    t.description.toLowerCase().includes(filters.search.toLowerCase())
-  );
+  const filtered = tasks.filter(t => {
+    const matchesSearch = !filters.search ||
+      t.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+      t.description.toLowerCase().includes(filters.search.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (user.role === 'admin') {
+      return t.assignedTo?.role === 'manager';
+    }
+    return true;
+  });
 
   const isOverdue = (task) => new Date(task.deadline) < new Date() && task.status !== 'completed';
 
@@ -377,7 +384,15 @@ export default function Tasks() {
         <div style={{ display: 'flex', gap: 12 }}>
           {canCreate && (
             <button className="btn btn-outline" onClick={() => {
-              const data = filtered.map(t => ({
+              const exportTasks = tasks.filter(t => {
+                if (filters.status && t.status !== filters.status) return false;
+                if (filters.priority && t.priority !== filters.priority) return false;
+                if (filters.search &&
+                  !t.title.toLowerCase().includes(filters.search.toLowerCase()) &&
+                  !t.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
+                return true;
+              });
+              const data = exportTasks.map(t => ({
                 Title: t.title,
                 Description: t.description,
                 AssignedTo: t.assignedTo?.name,

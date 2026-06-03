@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import * as XLSX from 'xlsx-js-style';
 
 const ReportModal = ({ onClose, onSave }) => {
+  const { user: currentUser } = useAuth();
   const [form, setForm] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
     progressDescription: '',
@@ -22,7 +23,7 @@ const ReportModal = ({ onClose, onSave }) => {
 
   useEffect(() => {
     api.get('/tasks?status=in-progress&limit=50').then(r => setTasks(r.data.tasks)).catch(() => { });
-    api.get('/users/managers').then(r => setManagers(r.data.managers)).catch(() => { });
+    api.get('/users/taggable').then(r => setManagers(r.data.users)).catch(() => { });
   }, []);
 
   const toggleTask = (taskId, title) => {
@@ -107,7 +108,7 @@ const ReportModal = ({ onClose, onSave }) => {
             </div>
             <div className="form-group">
               <button type="button" className="btn btn-outline" onClick={() => setShowTag(!showTag)}>
-                {form.taggedTo ? 'Tagged to Manager' : 'Tag Manager'}
+                {form.taggedTo ? (currentUser?.role === 'manager' ? 'Tagged to Admin' : 'Tagged to Manager') : (currentUser?.role === 'manager' ? 'Tag Admin' : 'Tag Manager')}
               </button>
               {showTag && managers.length > 0 && (
                 <div style={{ marginTop: 8, maxHeight: 200, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-secondary)' }}>
@@ -173,7 +174,9 @@ const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
             </div>
             {report.taggedTo && (
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>Tagged Manager</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>
+                  {report.taggedTo?.role === 'admin' ? 'Tagged Admin' : 'Tagged Manager'}
+                </p>
                 <p style={{ fontWeight: 600 }}>{report.taggedTo?.name}</p>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{report.taggedTo?.role}</p>
               </div>
