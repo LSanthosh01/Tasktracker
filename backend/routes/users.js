@@ -35,7 +35,12 @@ const getTenantFilter = async (user) => {
 // GET /api/users/stats - Get user statistics (all roles count)
 router.get('/stats/overview', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const filter = await getTenantFilter(req.user);
+    let filter;
+    if (req.user.role === 'manager') {
+      filter = { createdBy: req.user._id, role: 'employee' };
+    } else {
+      filter = await getTenantFilter(req.user);
+    }
     
     const stats = {
       admin: await User.countDocuments({ $and: [filter, { role: 'admin' }] }),
@@ -85,7 +90,12 @@ router.get('/taggable', protect, async (req, res) => {
 // GET /api/users - Get all users (admin/manager)
 router.get('/', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const filter = await getTenantFilter(req.user);
+    let filter;
+    if (req.user.role === 'manager') {
+      filter = { createdBy: req.user._id, role: 'employee' };
+    } else {
+      filter = await getTenantFilter(req.user);
+    }
     const users = await User.find(filter).sort('-createdAt');
     res.json({ success: true, count: users.length, users });
   } catch (err) {

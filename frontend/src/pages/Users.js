@@ -173,8 +173,10 @@ export default function Users() {
       {/* Role summary */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
         {[
-          { role: 'admin', color: 'var(--accent-2)', count: stats.admin },
-          { role: 'manager', color: 'var(--accent)', count: stats.manager },
+          ...(user.role === 'admin' ? [
+            { role: 'admin', color: 'var(--accent-2)', count: stats.admin },
+            { role: 'manager', color: 'var(--accent)', count: stats.manager }
+          ] : []),
           { role: 'employee', color: 'var(--accent-3)', count: stats.employee },
         ].map(({ role, color, count }) => (
           <div key={role} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -194,12 +196,14 @@ export default function Users() {
             value={search} onChange={e => setSearch(e.target.value)}
             style={{ background: '#ffffff', border: '1px solid #d1d5db' }} />
         </div>
-        <select className="filter-select" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-          <option value="">All Roles</option>
-          <option value="admin">Admin</option>
-          <option value="manager">Manager</option>
-          <option value="employee">Employee</option>
-        </select>
+        {user.role === 'admin' && (
+          <select className="filter-select" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+            <option value="">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="employee">Employee</option>
+          </select>
+        )}
       </div>
 
       {loading ? (
