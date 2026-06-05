@@ -329,6 +329,9 @@ export default function Tasks() {
       if (filters.status) params.set('status', filters.status);
       if (filters.priority) params.set('priority', filters.priority);
 
+      const limit = (user?.role === 'admin' || user?.role === 'manager') ? 100000 : 50;
+      params.set('limit', limit);
+
       const [tasksRes] = await Promise.all([
         api.get(`/tasks?${params}`),
       ]);
@@ -346,7 +349,7 @@ export default function Tasks() {
     } finally {
       setLoading(false);
     }
-  }, [filters.status, filters.priority, canCreate, user.role]);
+  }, [filters.status, filters.priority, canCreate, user?.role]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
