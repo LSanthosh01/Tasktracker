@@ -142,8 +142,11 @@ const ReportModal = ({ onClose, onSave }) => {
 };
 
 const ReportDetail = ({ report, onClose, onReview, currentUser }) => {
-  // Both admin and manager can review/approve any submitted report
-  const canReview = currentUser.role === 'admin' || currentUser.role === 'manager';
+  // Reports submitted by managers can only be reviewed/approved by the admin
+  const isManagerReport = report.submittedBy?.role === 'manager';
+  const canReview = isManagerReport
+    ? currentUser.role === 'admin'
+    : (currentUser.role === 'admin' || currentUser.role === 'manager');
   const [reviewForm, setReviewForm] = useState({ status: report.status === 'reviewed' ? 'approved' : 'reviewed', reviewNotes: '', managerRatingStars: 5 });
   const canApproveOrReview = report.status === 'submitted' || report.status === 'reviewed';
 

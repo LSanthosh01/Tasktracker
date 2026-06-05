@@ -81,6 +81,13 @@ const MultiSelectDropdown = ({ users, selectedIds, onChange }) => {
 // ─── Task Create / Edit Modal ─────────────────────────────────────────────────
 const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
   const isEdit = !!task?._id;
+  const isAssignee = task?.assignedTo && (task.assignedTo._id === currentUser._id || task.assignedTo === currentUser._id);
+  
+  const displayUsers = [...users];
+  if (task?.assignedTo && !displayUsers.some(u => u._id === (task.assignedTo._id || task.assignedTo))) {
+    displayUsers.unshift(task.assignedTo);
+  }
+
   const [form, setForm] = useState({
     title: task?.title || '',
     description: task?.description || '',
@@ -100,13 +107,13 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
     setLoading(true);
     try {
       if (isEdit) {
-        // For employees: 'completed' in dropdown maps to 'under-review' on backend
+        // For assignees: 'completed' in dropdown maps to 'under-review' on backend
         const submitForm = { ...form, assignedTo: form.assignedTo[0] };
-        if (isEmployee && submitForm.status === 'completed') {
+        if (isAssignee && submitForm.status === 'completed') {
           submitForm.status = 'under-review';
         }
         await api.put(`/tasks/${task._id}`, submitForm);
-        if (isEmployee && form.status === 'completed') {
+        if (isAssignee && form.status === 'completed') {
           toast.success('Task submitted for approval');
         } else {
           toast.success('Task updated');
@@ -133,7 +140,6 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
     }
   };
 
-  // Employee can only update status
   const isEmployee = currentUser.role === 'employee';
 
   return (
@@ -147,12 +153,12 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
           <div className="modal-body">
             <div className="form-group">
               <label className="form-label">Title *</label>
-              <input className="form-input" value={form.title} disabled={isEmployee}
+              <input className="form-input" value={form.title} disabled={isAssignee}
                 onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Task title" />
             </div>
             <div className="form-group">
               <label className="form-label">Description *</label>
-              <textarea className="form-textarea" value={form.description} disabled={isEmployee}
+              <textarea className="form-textarea" value={form.description} disabled={isAssignee}
                 onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Describe the task..." />
             </div>
             {!isEmployee && (
@@ -162,9 +168,10 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
                 </label>
                 {isEdit ? (
                   <select className="form-select" value={form.assignedTo[0] || ''}
+                    disabled={isEdit}
                     onChange={e => setForm(p => ({ ...p, assignedTo: [e.target.value] }))}>
                     <option value="">Select a person...</option>
-                    {users.map(u => <option key={u._id} value={u._id}>{u.name} ({u.role})</option>)}
+                    {displayUsers.map(u => <option key={u._id} value={u._id}>{u.name} ({u.role})</option>)}
                   </select>
                 ) : (
                   <MultiSelectDropdown
@@ -178,12 +185,12 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">Deadline *</label>
-                <input type="date" className="form-input" value={form.deadline} disabled={isEmployee}
+                <input type="date" className="form-input" value={form.deadline} disabled={isAssignee}
                   onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))} />
               </div>
               <div className="form-group">
                 <label className="form-label">Priority</label>
-                <select className="form-select" value={form.priority} disabled={isEmployee}
+                <select className="form-select" value={form.priority} disabled={isAssignee}
                   onChange={e => setForm(p => ({ ...p, priority: e.target.value }))}>
                   {PRIORITY_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
@@ -195,13 +202,13 @@ const TaskModal = ({ task, users, onClose, onSave, currentUser }) => {
                   <label className="form-label">Status</label>
                   <select className="form-select" value={form.status}
                     onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>
-                    {(isEmployee
-                      ? STATUS_OPTIONS.filter(s => s !== 'under-review') // employees see 'completed' instead of 'under-review'
+                    {(isAssignee
+                      ? STATUS_OPTIONS.filter(s => s !== 'under-review') // assignees see 'completed' instead of 'under-review'
                       : STATUS_OPTIONS
                     ).map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
-                {form.status === 'completed' && isEmployee && (
+                {form.status === 'completed' && isAssignee && (
                   <>
                     <div style={{ padding: '10px 14px', background: '#fffbeb', borderRadius: 8, border: '1px solid #fde68a', marginBottom: 16, fontSize: 13, color: '#92400e' }}>
                       ⚠️ This task will be sent to <strong>{task?.assignedBy?.name}</strong> for review and approval.

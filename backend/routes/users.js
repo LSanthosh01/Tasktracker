@@ -71,13 +71,24 @@ router.get('/managers', protect, async (req, res) => {
 // GET /api/users/taggable - Get users taggable for reports
 router.get('/taggable', protect, async (req, res) => {
   try {
-    const baseFilter = await getTenantFilter(req.user);
-    let filter = { ...baseFilter, isActive: true };
+    let filter = { isActive: true };
     
     if (req.user.role === 'manager') {
-      filter.role = 'admin';
+      if (req.user.createdBy) {
+        filter._id = req.user.createdBy;
+        filter.role = 'admin';
+      } else {
+        const firstAdmin = await User.findOne({ role: 'admin', isActive: true }).select('_id');
+        if (firstAdmin) {
+          filter._id = firstAdmin._id;
+          filter.role = 'admin';
+        } else {
+          return res.json({ success: true, users: [] });
+        }
+      }
     } else {
-      filter.role = 'manager';
+      const baseFilter = await getTenantFilter(req.user);
+      filter = { ...baseFilter, isActive: true, role: 'manager' };
     }
 
     const taggable = await User.find(filter).select('name email _id role');

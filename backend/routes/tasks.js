@@ -146,9 +146,9 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to update this task' });
     }
 
-    // Employees can only update status and selfRating
-    if (req.user.role === 'employee') {
-      // Employees cannot set status to 'completed' directly — must be approved
+    // Assignees (employee or manager) can only update status and selfRating
+    if (isAssignee) {
+      // Assignees cannot set status to 'completed' directly — must be approved
       if (req.body.status && req.body.status === 'completed') {
         return res.status(403).json({ success: false, message: 'Tasks can only be completed after manager/admin approval' });
       }
