@@ -287,14 +287,15 @@ export default function Reports() {
   const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/reports?limit=50');
+      const limit = (user?.role === 'admin' || user?.role === 'manager') ? 100000 : 50;
+      const res = await api.get(`/reports?limit=${limit}`);
       setReports(res.data.reports);
     } catch (err) {
       toast.error('Failed to load reports');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.role]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
