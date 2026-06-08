@@ -285,6 +285,51 @@ export default function Reports() {
   const [showCreate, setShowCreate] = useState(false);
   const [viewReport, setViewReport] = useState(null);
   const [filter, setFilter] = useState('');
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
+  const handleExport = (onlyManagers = false) => {
+    const exportReports = reports.filter(r => {
+      if (filter && r.status !== filter) return false;
+      if (onlyManagers && r.submittedBy?.role !== 'manager') return false;
+      return true;
+    });
+    const data = exportReports.map(r => ({
+      SubmittedBy: r.submittedBy?.name,
+      Role: r.submittedBy?.role,
+      Date: format(new Date(r.date), 'yyyy-MM-dd'),
+      Hours: r.hoursWorked,
+      SelfRating: r.selfRating,
+      Status: r.status,
+      ProgressDescription: r.progressDescription,
+      ReviewedBy: r.reviewedBy?.name || '',
+      ReviewNotes: r.reviewNotes || '',
+      'Admin/Manager Stars': r.managerRatingStars || ''
+    }));
+
+    if (data.length === 0) {
+      toast.error('No reports found to export');
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!ws[address]) continue;
+      ws[address].s = {
+        font: { bold: true },
+        alignment: { horizontal: 'left' }
+      };
+    }
+    // Set column widths
+    ws['!cols'] = Object.keys(data[0]).map(() => ({ wch: 20 }));
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Reports");
+    const filename = onlyManagers ? "Manager_Reports_Export.xlsx" : "Reports_Export.xlsx";
+    XLSX.writeFile(wb, filename);
+  };
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -328,44 +373,63 @@ export default function Reports() {
           <p className="page-subtitle">{filtered.length} report{filtered.length !== 1 ? 's' : ''} total</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
-          {user.role !== 'employee' && (
-            <button className="btn btn-outline" onClick={() => {
-              const exportReports = reports.filter(r => {
-                if (filter && r.status !== filter) return false;
-                return true;
-              });
-              const data = exportReports.map(r => ({
-                SubmittedBy: r.submittedBy?.name,
-                Role: r.submittedBy?.role,
-                Date: format(new Date(r.date), 'yyyy-MM-dd'),
-                Hours: r.hoursWorked,
-                SelfRating: r.selfRating,
-                Status: r.status,
-                ProgressDescription: r.progressDescription,
-                ReviewedBy: r.reviewedBy?.name || '',
-                ReviewNotes: r.reviewNotes || '',
-                'Admin/Manager Stars': r.managerRatingStars || ''
-              }));
-              const ws = XLSX.utils.json_to_sheet(data);
-
-              const range = XLSX.utils.decode_range(ws['!ref']);
-              for (let C = range.s.c; C <= range.e.c; ++C) {
-                const address = XLSX.utils.encode_cell({ r: 0, c: C });
-                if (!ws[address]) continue;
-                ws[address].s = {
-                  font: { bold: true },
-                  alignment: { horizontal: 'left' }
-                };
-              }
-              // Set column widths
-              ws['!cols'] = Object.keys(data[0]).map(() => ({ wch: 20 }));
-
-              const wb = XLSX.utils.book_new();
-              XLSX.utils.book_append_sheet(wb, ws, "Reports");
-              XLSX.writeFile(wb, "Reports_Export.xlsx");
-            }}>
-              Export to Excel
-            </button>
+          {user.role === 'admin' ? (
+            <div style={{ position: 'relative' }}>
+              <button className="btn btn-outline" onClick={() => setShowExportMenu(!showExportMenu)}>
+                Export to Excel
+              </button>
+              {showExportMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: 8,
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  boxShadow: 'var(--shadow-lg)',
+                  zIndex: 150,
+                  width: 200,
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    padding: '10px 14px',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    borderBottom: '1px solid var(--border)',
+                    transition: 'background 0.2s'
+                  }}
+                  className="export-menu-item"
+                  onClick={() => {
+                    handleExport(true);
+                    setShowExportMenu(false);
+                  }}>
+                    Export Manager Reports
+                  </div>
+                  <div style={{
+                    padding: '10px 14px',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    transition: 'background 0.2s'
+                  }}
+                  className="export-menu-item"
+                  onClick={() => {
+                    handleExport(false);
+                    setShowExportMenu(false);
+                  }}>
+                    Export All Reports
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            user.role !== 'employee' && (
+              <button className="btn btn-outline" onClick={() => handleExport(false)}>
+                Export to Excel
+              </button>
+            )
           )}
           <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} /> Submit Report

@@ -1197,6 +1197,10 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
   background: rgba(79, 70, 229, 0.08);
 }
 
+.export-menu-item:hover {
+  background: var(--bg-secondary) !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
