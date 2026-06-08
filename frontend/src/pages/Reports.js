@@ -468,7 +468,7 @@ export default function Reports() {
                   <th>Progress Summary</th>
                   <th>Status</th>
                   <th>Reviewed By</th>
-                  <th>{filter === 'approved' ? 'Ratings' : 'Actions'}</th>
+                  <th>Actions & Ratings</th>
                 </tr>
               </thead>
               <tbody>
@@ -491,26 +491,32 @@ export default function Reports() {
                       <div style={{ fontSize: 13, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {report.progressDescription}
                       </div>
+                      {report.reviewNotes && (
+                        <div style={{ fontSize: 11, color: 'var(--success)', marginTop: 4, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`Admin Comments: ${report.reviewNotes}`}>
+                          Comment: {report.reviewNotes}
+                        </div>
+                      )}
                     </td>
                     <td><span className={`badge badge-${report.status}`}>{report.status}</span></td>
                     <td style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{report.reviewedBy?.name || '—'}</td>
                     <td>
-                      {report.status !== 'approved' ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {report.status === 'approved' && (
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                            {report.managerRatingStars !== undefined && report.managerRatingStars !== null ? `★ ${report.managerRatingStars}/5` : <span style={{ color: 'var(--text-muted)' }}>No Rating</span>}
+                          </div>
+                        )}
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button className="btn btn-secondary btn-icon btn-sm" onClick={() => setViewReport(report)} title="View">
                             <Eye size={14} />
                           </button>
-                          {(user.role === 'admin' || report.submittedBy?._id === user._id) && (
+                          {(user.role === 'admin' || report.submittedBy?._id === user._id) && report.status !== 'approved' && (
                             <button className="btn btn-danger btn-icon btn-sm" onClick={() => handleDelete(report._id)}>
                               <Trash2 size={14} />
                             </button>
                           )}
                         </div>
-                      ) : (
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                          {report.managerRatingStars !== undefined && report.managerRatingStars !== null ? `★ ${report.managerRatingStars}/5` : <span style={{ color: 'var(--text-muted)' }}>No Rating</span>}
-                        </div>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}
