@@ -110,14 +110,33 @@ router.post('/', protect, [
   try {
     const { date, progressDescription, hoursWorked, tasksWorkedOn, taggedTo, selfRating } = req.body;
 
+    let finalTaggedTo = taggedTo;
+    if (req.user.role === 'manager') {
+      if (req.user.createdBy) {
+        const creator = await User.findById(req.user.createdBy);
+        if (creator && creator.role === 'admin') {
+          finalTaggedTo = creator._id;
+        }
+      }
+      if (!finalTaggedTo) {
+        const firstAdmin = await User.findOne({ role: 'admin', isActive: true });
+        if (firstAdmin) {
+          finalTaggedTo = firstAdmin._id;
+        }
+      }
+    }
+
     const report = await Report.create({
       submittedBy: req.user._id,
       date, progressDescription, hoursWorked,
       tasksWorkedOn: tasksWorkedOn || [],
-      taggedTo, selfRating
+      taggedTo: finalTaggedTo, selfRating
     });
 
-    const populated = await report.populate('submittedBy', 'name email role');
+    const populated = await report.populate([
+      { path: 'submittedBy', select: 'name email role' },
+      { path: 'taggedTo', select: 'name email role' }
+    ]);
     res.status(201).json({ success: true, report: populated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

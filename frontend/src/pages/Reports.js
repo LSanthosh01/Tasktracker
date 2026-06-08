@@ -106,28 +106,30 @@ const ReportModal = ({ onClose, onSave }) => {
                 value={form.progressDescription} placeholder="Describe what you worked on today, any blockers, and progress made..."
                 onChange={e => setForm(p => ({ ...p, progressDescription: e.target.value }))} />
             </div>
-            <div className="form-group">
-              <button type="button" className="btn btn-outline" onClick={() => setShowTag(!showTag)}>
-                {form.taggedTo ? (currentUser?.role === 'manager' ? 'Tagged to Admin' : 'Tagged to Manager') : (currentUser?.role === 'manager' ? 'Tag Admin' : 'Tag Manager')}
-              </button>
-              {showTag && managers.length > 0 && (
-                <div style={{ marginTop: 8, maxHeight: 200, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-secondary)' }}>
-                  {managers.map(manager => (
-                    <div key={manager._id} style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid var(--border)', background: form.taggedTo === manager._id ? 'rgba(108,99,255,0.1)' : 'transparent' }}
-                      onClick={() => { setForm(p => ({ ...p, taggedTo: manager._id })); setShowTag(false); }}>
-                      <p style={{ fontWeight: 500 }}>{manager.name}</p>
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{manager.email}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {form.taggedTo && (
-                <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(108,99,255,0.1)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{managers.find(m => m._id === form.taggedTo)?.name}</span>
-                  <button type="button" onClick={() => setForm(p => ({ ...p, taggedTo: null }))} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}>✕</button>
-                </div>
-              )}
-            </div>
+            {currentUser?.role !== 'manager' && (
+              <div className="form-group">
+                <button type="button" className="btn btn-outline" onClick={() => setShowTag(!showTag)}>
+                  {form.taggedTo ? 'Tagged to Manager' : 'Tag Manager'}
+                </button>
+                {showTag && managers.length > 0 && (
+                  <div style={{ marginTop: 8, maxHeight: 200, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-secondary)' }}>
+                    {managers.map(manager => (
+                      <div key={manager._id} style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid var(--border)', background: form.taggedTo === manager._id ? 'rgba(108,99,255,0.1)' : 'transparent' }}
+                        onClick={() => { setForm(p => ({ ...p, taggedTo: manager._id })); setShowTag(false); }}>
+                        <p style={{ fontWeight: 500 }}>{manager.name}</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{manager.email}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {form.taggedTo && (
+                  <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(108,99,255,0.1)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{managers.find(m => m._id === form.taggedTo)?.name}</span>
+                    <button type="button" onClick={() => setForm(p => ({ ...p, taggedTo: null }))} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}>✕</button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
