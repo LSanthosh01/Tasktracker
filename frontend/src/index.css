@@ -377,10 +377,15 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; lin
 .form-error { font-size: 12px; color: var(--danger); margin-top: 4px; }
 
 /* Table */
-.table-container { overflow-x: auto; }
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
 
 .table {
   width: 100%;
+  min-width: 900px;
   border-collapse: collapse;
 }
 

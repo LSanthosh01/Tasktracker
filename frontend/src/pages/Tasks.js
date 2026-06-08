@@ -472,7 +472,7 @@ export default function Tasks() {
           </div>
         </div>
       ) : (
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div className="table-container">
             <table className="table">
               <thead>
