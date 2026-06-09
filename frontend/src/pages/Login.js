@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Zap } from 'lucide-react';
-import photo from '../assets/photo.jpeg';
+import photo from '../assets/ph1.jpeg';
 import PhotoSliderModal from '../components/common/PhotoSliderModal';
 
 export default function Login() {
@@ -95,7 +95,7 @@ export default function Login() {
                 onClick={() => setSliderOpen(true)}
                 title="View photos"
                 style={{
-                  width: '55px', height: '55px', borderRadius: '50%',
+                  width: '55px', height: '55px', borderRadius: '12px',
                   objectFit: 'cover', border: '3px solid white',
                   boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
                   cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s'

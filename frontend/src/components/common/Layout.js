@@ -5,7 +5,7 @@ import {
   LayoutDashboard, CheckSquare, FileText, Star, Users,
   User, LogOut, Zap, Shield, Briefcase, UserCheck
 } from 'lucide-react';
-import photo from '../../assets/photo.jpeg';
+import photo from '../../assets/ph1.jpeg';
 import PhotoSliderModal from './PhotoSliderModal';
 import NotificationBell from './NotificationBell';
 
@@ -124,7 +124,7 @@ export default function Layout() {
             onClick={() => setSliderOpen(true)}
             title="View photos"
             style={{
-              width: '55px', height: '55px', borderRadius: '50%',
+              width: '55px', height: '55px', borderRadius: '12px',
               objectFit: 'cover', border: '3px solid var(--accent-4)',
               boxShadow: '0 2px 10px rgba(79,70,229,0.15)',
               cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s'
